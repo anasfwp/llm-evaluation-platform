@@ -1,0 +1,49 @@
+# Demo evaluation: two deterministic fake models, no credentials or network needed.
+# Relative paths resolve against this file's folder.
+schema_version: "1.0"
+project: demo-project
+dataset: ../datasets/demo_qa.json
+
+models:
+  # Answers every case with its reference answer: an upper bound / sanity check.
+  - name: fake-reference
+    provider: fake
+    model_id: fake-oracle-v1
+    parameters:
+      mode: expected
+      latency_ms: 5
+      overrides:
+        open-greeting: {output: "Hi there! How can I help you today?"}
+
+  # A weaker simulated model: some wrong answers and one provider error.
+  - name: fake-noisy
+    provider: fake
+    model_id: fake-noisy-v1
+    parameters:
+      mode: expected
+      latency_ms: 15
+      overrides:
+        capital-australia: {output: "Sydney"}
+        science-water-formula: {output: "h2o."}  # still matches after normalization
+        math-sqrt-001: {output: "The square root of 144 is 12."}  # right, but not an exact match
+        format-json-prime: {output: "{\"is_prime\": false}"}
+        cs-http-not-found: {error: rate_limited}  # transient: retried, then recorded
+        open-greeting: {output: "Hello, what do you need?"}
+
+metrics:
+  - name: exact_match
+    version: "1.0"
+  - name: latency
+    version: "1.0"
+
+run:
+  timeout_seconds: 10
+  max_concurrency: 4
+  max_retries: 1
+  retry_backoff_seconds: 0.1
+
+report:
+  json: ../reports/demo-run.json
+  markdown: ../reports/demo-run.md
+
+gates: gates.example.yaml

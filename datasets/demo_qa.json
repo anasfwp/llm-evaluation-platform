@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "name": "demo-qa",
+  "description": "Small known-answer QA set for demos and CI. Written for this repository; free to redistribute.",
+  "cases": [
+    {"case_key": "capital-france", "input": {"question": "What is the capital of France?"}, "expected_output": "Paris", "tags": ["geography"]},
+    {"case_key": "capital-japan", "input": {"question": "What is the capital of Japan?"}, "expected_output": "Tokyo", "tags": ["geography"]},
+    {"case_key": "capital-canada", "input": {"question": "What is the capital of Canada?"}, "expected_output": "Ottawa", "tags": ["geography"]},
+    {"case_key": "capital-australia", "input": {"question": "What is the capital of Australia?"}, "expected_output": "Canberra", "tags": ["geography"]},
+    {"case_key": "geo-continent-egypt", "input": {"question": "On which continent is Egypt?"}, "expected_output": "Africa", "tags": ["geography"]},
+    {"case_key": "geo-largest-ocean", "input": {"question": "What is the largest ocean on Earth?"}, "expected_output": "Pacific Ocean", "tags": ["geography"]},
+    {"case_key": "math-add-001", "input": {"question": "What is 17 + 25? Answer with a number only."}, "expected_output": "42", "tags": ["math"]},
+    {"case_key": "math-mul-001", "input": {"question": "What is 9 multiplied by 8? Answer with a number only."}, "expected_output": "72", "tags": ["math"]},
+    {"case_key": "math-sqrt-001", "input": {"question": "What is the square root of 144? Answer with a number only."}, "expected_output": "12", "tags": ["math"]},
+    {"case_key": "science-water-formula", "input": {"question": "What is the chemical formula for water?"}, "expected_output": "H2O", "tags": ["science"]},
+    {"case_key": "science-largest-planet", "input": {"question": "Which planet is the largest in our solar system?"}, "expected_output": "Jupiter", "tags": ["science"]},
+    {"case_key": "science-boiling-point", "input": {"question": "At sea level, what is the boiling point of water in degrees Celsius? Answer with a number only."}, "expected_output": "100", "tags": ["science"]},
+    {"case_key": "science-gold-symbol", "input": {"question": "What is the chemical symbol for gold?"}, "expected_output": "Au", "tags": ["science"]},
+    {"case_key": "lang-spanish-hello", "input": {"question": "What is the Spanish word for 'hello'?"}, "expected_output": "Hola", "tags": ["language"]},
+    {"case_key": "units-km-meters", "input": {"question": "How many meters are in one kilometer? Answer with a number only."}, "expected_output": "1000", "tags": ["units"]},
+    {"case_key": "time-leap-year-days", "input": {"question": "How many days are in a leap year? Answer with a number only."}, "expected_output": "366", "tags": ["units"]},
+    {"case_key": "format-json-prime", "input": {"question": "Is 7 a prime number? Reply with JSON only, in the form {\"is_prime\": true} or {\"is_prime\": false}."}, "expected_output": "{\"is_prime\": true}", "tags": ["structured-output"]},
+    {"case_key": "format-iso-date", "input": {"question": "Write the date 4 July 2021 in ISO 8601 format (YYYY-MM-DD)."}, "expected_output": "2021-07-04", "tags": ["structured-output"]},
+    {"case_key": "cs-binary-ten", "input": {"question": "What is the decimal number 10 written in binary?"}, "expected_output": "1010", "tags": ["computing"]},
+    {"case_key": "cs-http-not-found", "input": {"question": "Which HTTP status code means 'Not Found'?"}, "expected_output": "404", "tags": ["computing"]},
+    {"case_key": "open-greeting", "input": {"question": "Write a one-sentence greeting for a customer support chat."}, "expected_output": null, "tags": ["open-ended"], "metadata": {"note": "No reference answer: exact_match is not applicable."}}
+  ]
+}

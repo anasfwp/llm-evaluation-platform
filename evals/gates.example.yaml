@@ -1,0 +1,20 @@
+# Absolute-threshold quality gate. Every rule is checked for every model unless
+# the rule sets `model:`. Missing metrics never pass silently: the policy
+# chooses fail, skip, or warn.
+schema_version: "1.0"
+name: demo-release-gate
+missing_metric_policy: fail
+
+rules:
+  - metric: exact_match
+    aggregation: mean
+    operator: gte
+    threshold: 0.8
+  - metric: error_rate
+    aggregation: overall
+    operator: lte
+    threshold: 0.05
+  - metric: latency
+    aggregation: p95
+    operator: lte
+    threshold: 2000
