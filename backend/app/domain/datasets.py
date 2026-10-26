@@ -75,14 +75,23 @@ def load_dataset(path: Path) -> Dataset:
     except OSError as exc:
         raise InputValidationError(source, [Issue("", f"cannot read file: {exc}")]) from None
 
-    suffix = path.suffix.lower()
+    return parse_dataset_text(text, suffix=path.suffix, source=source, name=path.stem)
+
+
+def parse_dataset_text(text: str, *, suffix: str, source: str, name: str) -> Dataset:
+    """Parse dataset content by file suffix. ``name`` is used for JSONL (which has no header)."""
+    suffix = suffix.lower()
     if suffix == ".json":
         return _parse_json_dataset(source, text)
     if suffix == ".jsonl":
-        return _parse_jsonl_dataset(source, text, name=path.stem)
+        return _parse_jsonl_dataset(source, text, name=name)
     raise InputValidationError(
         source, [Issue("", f"unsupported dataset format '{suffix}'; use .json or .jsonl")]
     )
+
+
+def dataset_to_jsonl(dataset: Dataset) -> str:
+    return "".join(case.model_dump_json() + "\n" for case in dataset.cases)
 
 
 def _parse_json_dataset(source: str, text: str) -> Dataset:

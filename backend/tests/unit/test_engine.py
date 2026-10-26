@@ -220,3 +220,41 @@ def test_multiple_models_are_summarized_separately(
     means = {s.model_name: s.metrics["exact_match"].mean for s in report.summaries}
     assert means == {"good": 1.0, "bad": 0.0}
     assert len(report.results) == 8
+
+
+def test_on_result_hook_sees_every_result(
+    make_dataset: Callable[..., Dataset], make_config: Callable[..., EvalConfig]
+) -> None:
+    dataset = make_dataset(count=3)
+    seen: list[str] = []
+    plan = RunPlan(
+        config=make_config(),
+        dataset=dataset,
+        dataset_source="dataset.json",
+        metrics=[ExactMatch()],
+        adapters={"m1": ScriptedAdapter()},
+    )
+    report = asyncio.run(run_evaluation(plan, on_result=lambda r: seen.append(r.case_key)))
+    assert sorted(seen) == [c.case_key for c in dataset.cases]
+    assert report.status == RunStatus.COMPLETED
+
+
+def test_cancellation_stops_remaining_cases(
+    make_dataset: Callable[..., Dataset], make_config: Callable[..., EvalConfig]
+) -> None:
+    seen: list[str] = []
+    plan = RunPlan(
+        config=make_config(max_concurrency=1),
+        dataset=make_dataset(count=5),
+        dataset_source="dataset.json",
+        metrics=[ExactMatch()],
+        adapters={"m1": ScriptedAdapter()},
+    )
+    report = asyncio.run(
+        run_evaluation(
+            plan, on_result=lambda r: seen.append(r.case_key), is_cancelled=lambda: len(seen) >= 2
+        )
+    )
+    assert report.status == RunStatus.CANCELLED
+    assert seen == ["case-0", "case-1"]
+    assert [r.case_key for r in report.results] == ["case-0", "case-1"]

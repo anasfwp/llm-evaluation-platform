@@ -1,4 +1,4 @@
-"""Error types shared by the CLI and (later) the API."""
+"""Error types shared by the CLI, services, and the API."""
 
 from __future__ import annotations
 
@@ -30,6 +30,33 @@ class InputValidationError(Exception):
     def format(self) -> str:
         lines = [f"{self.source}: {issue}" for issue in self.issues]
         return "\n".join(lines) if lines else f"{self.source}: invalid input"
+
+
+class ServiceError(Exception):
+    """A use-case failure with a stable machine-readable code; mapped to HTTP by the API."""
+
+    code = "SERVICE_ERROR"
+
+    def __init__(self, message: str, details: list[Issue] | None = None) -> None:
+        self.message = message
+        self.details = details or []
+        super().__init__(message)
+
+
+class NotFoundError(ServiceError):
+    code = "NOT_FOUND"
+
+
+class ConflictError(ServiceError):
+    code = "CONFLICT"
+
+
+class InvalidRequestError(ServiceError):
+    code = "VALIDATION_ERROR"
+
+
+class DependencyUnavailableError(ServiceError):
+    code = "DEPENDENCY_UNAVAILABLE"
 
 
 def format_location(loc: Iterable[int | str], prefix: str = "") -> str:

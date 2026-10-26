@@ -2,11 +2,50 @@
 
 from __future__ import annotations
 
+import csv
+import io
 from pathlib import Path
 
 from app.domain.runs import CaseStatus, RunReport
 
 MAX_FAILURES_LISTED = 20
+_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _csv_safe(value: object) -> object:
+    """Neutralize spreadsheet formula injection: model output is untrusted text."""
+    if isinstance(value, str) and value.startswith(_FORMULA_PREFIXES):
+        return "'" + value
+    return value
+
+
+def render_csv(report: RunReport) -> str:
+    """One row per (model, case) with a score and status column per metric."""
+    metric_names = [m.name for m in report.metrics]
+    header = [
+        "run_id", "model_name", "provider", "model_id", "case_key", "status", "tags",
+        "expected_output", "actual_output", "latency_ms", "input_tokens", "output_tokens",
+        "attempts", "error_code", "error_message",
+    ]  # fmt: skip
+    for name in metric_names:
+        header += [f"{name}_score", f"{name}_status"]
+
+    buffer = io.StringIO()
+    writer = csv.writer(buffer, lineterminator="\n")
+    writer.writerow(header)
+    for result in report.results:
+        by_name = {m.metric_name: m for m in result.metrics}
+        row: list[object] = [
+            report.run_id, result.model_name, result.provider, result.model_id,
+            result.case_key, result.status, ";".join(result.tags), result.expected_output,
+            result.actual_output, result.latency_ms, result.input_tokens, result.output_tokens,
+            result.attempts, result.error_code, result.error_message,
+        ]  # fmt: skip
+        for name in metric_names:
+            metric = by_name.get(name)
+            row += [metric.score if metric else None, metric.status if metric else None]
+        writer.writerow([_csv_safe(value) for value in row])
+    return buffer.getvalue()
 
 
 def write_json_report(report: RunReport, path: Path) -> None:

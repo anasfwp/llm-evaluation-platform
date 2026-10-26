@@ -6,7 +6,9 @@ cost. Run repeatable experiments, compare models and prompt versions,
 inspect failures, and enforce quality gates in CI.
 
 > **Project status:** In development. Phase 1 (deterministic evaluation
-> core + CLI) is implemented and tested. Everything else below is planned.
+> core + CLI) and Phase 2 (REST API, PostgreSQL persistence, migrations,
+> background worker) are implemented and tested. Everything else below is
+> planned. The API has **no authentication yet**: run it on localhost only.
 > Do not treat illustrative sample scores or costs as real benchmark
 > results.
 
@@ -27,6 +29,16 @@ inspect failures, and enforce quality gates in CI.
     policy.
 -   JSON + Markdown reports that record the dataset content hash, the
     config hash, metric versions and the software version.
+-   REST API (FastAPI) for projects, versioned datasets (create, JSON/JSONL
+    import and export), model configurations (secrets referenced by
+    environment-variable name, never stored), and evaluation runs.
+    See [`docs/api.md`](docs/api.md).
+-   Runs execute in a Celery worker over Redis: queued → running →
+    completed/cancelled/failed, case results committed as they finish,
+    cancellation, filterable case-level results, and JSON/CSV/Markdown
+    report export.
+-   PostgreSQL schema managed by Alembic migrations; Docker Compose stack
+    with PostgreSQL, Redis, migrations, API and worker.
 
 ## Why this project?
 
@@ -154,11 +166,13 @@ intend to use. Never commit `.env`.
 
 ### 3. Start local infrastructure
 
-When `docker-compose.yml` and its services are implemented:
-
 ``` bash
 docker compose up -d --build
 ```
+
+This starts PostgreSQL and Redis, applies migrations, then starts the API
+on `http://localhost:8000` and the worker. All ports bind to `127.0.0.1`.
+Not needed for the CLI.
 
 ### 4. Install backend dependencies
 
@@ -198,21 +212,19 @@ threshold in `evals/gates.example.yaml` to watch the run exit with code
 
 ### 7. Start the API and frontend
 
-The planned local defaults are API `http://localhost:8000` and frontend
-`http://localhost:5173`. Confirm the actual ports in configuration.
+With Docker Compose the API and worker are already running. To run them
+from your checkout instead (PostgreSQL and Redis still required, for
+example `docker compose up -d postgres redis`):
 
 ``` bash
-# Backend example; run from the directory/package where app is importable
-uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-
-# Frontend, after its package.json is implemented
-cd frontend
-npm install
-npm run dev
+uv run alembic upgrade head
+uv run uvicorn app.main:create_app --factory --app-dir backend --reload --port 8000
+uv run celery --workdir backend -A app.workers.celery_app worker --loglevel INFO
 ```
 
-FastAPI's interactive documentation is expected at
-`http://localhost:8000/docs` when the API is running.
+Interactive API documentation is at `http://localhost:8000/docs`. The
+uvicorn command binds to `127.0.0.1` by default; keep it that way until
+authentication exists. The React frontend is planned for Phase 6.
 
 ## Dataset example
 
@@ -323,7 +335,7 @@ limits.
     (Docker Compose deferred to Phase 2, when there are services to run)
 -   [x] Phase 1: deterministic fake provider, dataset validation, core
     metrics, CLI, JSON report
--   [ ] Phase 2: FastAPI, PostgreSQL persistence, migrations, background
+-   [x] Phase 2: FastAPI, PostgreSQL persistence, migrations, background
     worker
 -   [ ] Phase 3: hosted and OpenAI-compatible provider adapters, token
     usage and cost estimation

@@ -1,0 +1,81 @@
+# Local stack: PostgreSQL, Redis, migrations, API, and worker.
+#   docker compose up -d --build
+# Ports bind to 127.0.0.1 only. The API has no authentication yet and must
+# never be exposed publicly; database and Redis ports must never be public.
+name: llm-eval
+
+x-backend-env: &backend-env
+  APP_ENV: development
+  LOG_LEVEL: INFO
+  DATABASE_URL: postgresql+psycopg://eval_user:${POSTGRES_PASSWORD:-change_me}@postgres:5432/llm_eval
+  REDIS_URL: redis://redis:6379/0
+  RUN_DISPATCHER: celery
+  CORS_ORIGINS: http://localhost:5173
+
+x-backend: &backend
+  build:
+    context: .
+    dockerfile: backend/Dockerfile
+  environment: *backend-env
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: eval_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
+      POSTGRES_DB: llm_eval
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eval_user -d llm_eval"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    <<: *backend
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    <<: *backend
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/ready')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  worker:
+    <<: *backend
+    command: ["celery", "-A", "app.workers.celery_app", "worker", "--loglevel", "INFO", "--concurrency", "2"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+volumes:
+  pgdata:
