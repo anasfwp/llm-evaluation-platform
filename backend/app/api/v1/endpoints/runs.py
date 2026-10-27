@@ -52,6 +52,7 @@ def start_run(
         dispatcher,
         max_cases=settings.max_cases_per_run,
         max_models=settings.max_models_per_run,
+        allowed_env=settings.provider_env_allowed,
     )
     return RunAccepted(
         run_id=run.id, status=RunStatus(run.status), status_url=f"/api/v1/runs/{run.id}"

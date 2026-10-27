@@ -18,3 +18,8 @@ rules:
     aggregation: p95
     operator: lte
     threshold: 2000
+  # Budget for the whole run per model, in USD (sum of per-case estimates).
+  - metric: estimated_cost
+    aggregation: total
+    operator: lte
+    threshold: 0.01

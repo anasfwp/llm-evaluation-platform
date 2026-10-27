@@ -11,6 +11,12 @@ x-backend-env: &backend-env
   REDIS_URL: redis://redis:6379/0
   RUN_DISPATCHER: celery
   CORS_ORIGINS: http://localhost:5173
+  # Provider credentials are passed through from your shell or .env; empty means unset.
+  # Only variables listed in PROVIDER_ENV_ALLOWLIST can be referenced by model configs.
+  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+  OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+  OPENAI_COMPATIBLE_API_KEY: ${OPENAI_COMPATIBLE_API_KEY:-}
+  OPENAI_COMPATIBLE_BASE_URL: ${OPENAI_COMPATIBLE_BASE_URL:-}
 
 x-backend: &backend
   build:

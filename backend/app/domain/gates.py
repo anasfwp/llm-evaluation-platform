@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 # Run-level metrics computed from case statuses rather than from a metric implementation.
 ERROR_RATE = "error_rate"
 
-Aggregation = Literal["mean", "median", "p95", "min", "max", "count", "overall"]
+Aggregation = Literal["mean", "median", "p95", "min", "max", "total", "count", "overall"]
 Operator = Literal["gte", "gt", "lte", "lt", "eq"]
 
 

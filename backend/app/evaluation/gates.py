@@ -92,4 +92,6 @@ def _lookup(
     if metric.scored_count == 0:
         return None, f"metric '{rule.metric}' has no scored cases for model '{model_name}'"
     value: float | None = getattr(metric, rule.aggregation)
+    if value is None:
+        return None, f"metric '{rule.metric}' does not report aggregation '{rule.aggregation}'"
     return value, ""

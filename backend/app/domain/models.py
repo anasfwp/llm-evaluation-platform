@@ -7,6 +7,9 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+# Environment variable names: upper case letters, digits, and underscores.
+SECRET_REFERENCE_PATTERN = r"^[A-Z][A-Z0-9_]{0,99}$"
+
 
 class ProviderErrorCategory(StrEnum):
     """Stable internal error categories; provider-specific errors map onto these."""
@@ -35,8 +38,8 @@ _TRANSIENT = frozenset(
 class ModelConfigSnapshot(BaseModel):
     """One model/target under evaluation, as recorded in the run snapshot.
 
-    Credentials are never stored here; later providers reference them by
-    environment variable name.
+    Credentials are never stored here: ``secret_reference`` names the environment
+    variable that holds the API key, and adapters read it at call time.
     """
 
     model_config = ConfigDict(extra="forbid", frozen=True, protected_namespaces=())
@@ -47,6 +50,9 @@ class ModelConfigSnapshot(BaseModel):
     parameters: dict[str, Any] = Field(default_factory=dict)
     timeout_seconds: float | None = Field(default=None, gt=0, le=600)
     max_concurrency: int | None = Field(default=None, ge=1, le=64)
+    # Environment variable *name* holding the credential (never the value). When unset,
+    # the provider's default variable is used, e.g. ANTHROPIC_API_KEY.
+    secret_reference: str | None = Field(default=None, pattern=SECRET_REFERENCE_PATTERN)
 
 
 class ModelRequest(BaseModel):

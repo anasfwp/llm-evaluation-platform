@@ -18,7 +18,7 @@ from app.domain.gates import GateConfig
 from app.domain.runs import EvalConfig, RunReport
 from app.evaluation.engine import RunPlan
 from app.evaluation.metrics.base import Metric
-from app.evaluation.registry import build_metric
+from app.evaluation.registry import build_metric, freeze_selections
 from app.providers.registry import get_provider
 
 
@@ -101,6 +101,8 @@ def load_config(path: Path, *, gate_override: Path | None = None) -> LoadedConfi
     except ValidationError as exc:
         raise InputValidationError(source, issues_from_validation_error(exc)) from None
 
+    # Pin defaults (e.g. the pricing table) so the report's snapshot records them.
+    config = config.model_copy(update={"metrics": freeze_selections(config.metrics)})
     issues: list[Issue] = []
     for index, model in enumerate(config.models):
         location = f"models[{index}]"

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from app.providers.anthropic_messages import AnthropicProvider
 from app.providers.base import BaseProvider
 from app.providers.fake import FakeProvider
+from app.providers.openai_compatible import OpenAICompatibleProvider, OpenAIProvider
 
-# Hosted and OpenAI-compatible adapters are added in Phase 3.
 PROVIDERS: dict[str, type[BaseProvider]] = {
-    FakeProvider.provider_name: FakeProvider,
+    cls.provider_name: cls
+    for cls in (FakeProvider, AnthropicProvider, OpenAIProvider, OpenAICompatibleProvider)
 }
 
 

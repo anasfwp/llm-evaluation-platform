@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pytest
 from fastapi.testclient import TestClient
 
 from tests.integration.conftest import JsonDict, ModelFactory
@@ -13,12 +14,12 @@ def test_create_update_and_list_models(client: TestClient, project: JsonDict) ->
             "provider": "fake",
             "model_id": "fake-v1",
             "parameters": {"mode": "constant", "constant_output": "hi"},
-            "secret_reference": "SOME_API_KEY",
+            "secret_reference": "ANTHROPIC_API_KEY",
         },
     )
     assert response.status_code == 201, response.text
     model = response.json()
-    assert model["secret_reference"] == "SOME_API_KEY"
+    assert model["secret_reference"] == "ANTHROPIC_API_KEY"
 
     updated = client.patch(f"/api/v1/models/{model['id']}", json={"model_id": "fake-v2"})
     assert updated.status_code == 200
@@ -89,3 +90,48 @@ def test_connectivity_check(client: TestClient, make_model: ModelFactory) -> Non
     body = response.json()
     assert body["ok"] is False
     assert body["error_code"] == "authentication_failed"
+
+
+@pytest.mark.parametrize(
+    ("payload", "variable"),
+    [
+        ({"provider": "anthropic", "secret_reference": "DATABASE_URL"}, "DATABASE_URL"),
+        (
+            {"provider": "openai_compatible", "parameters": {"base_url_env": "REDIS_URL"}},
+            "REDIS_URL",
+        ),
+    ],
+)
+def test_env_references_must_be_allowlisted(
+    client: TestClient, project: JsonDict, payload: JsonDict, variable: str
+) -> None:
+    response = client.post(
+        f"/api/v1/projects/{project['id']}/models",
+        json={"name": "x", "model_id": "m", **payload},
+    )
+    assert response.status_code == 422
+    assert f"environment variable '{variable}' is not in PROVIDER_ENV_ALLOWLIST" in response.text
+
+
+def test_update_cannot_point_at_disallowed_variable(
+    client: TestClient, make_model: ModelFactory
+) -> None:
+    model = make_model("m")
+    response = client.patch(
+        f"/api/v1/models/{model['id']}", json={"secret_reference": "SECRET_KEY"}
+    )
+    assert response.status_code == 422
+
+
+def test_anthropic_without_key_reports_authentication_failure(
+    client: TestClient, project: JsonDict, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    model = client.post(
+        f"/api/v1/projects/{project['id']}/models",
+        json={"name": "claude", "provider": "anthropic", "model_id": "claude-opus-5-5"},
+    )
+    assert model.status_code == 201, model.text
+    response = client.post(f"/api/v1/models/{model.json()['id']}/test")
+    assert response.status_code == 502
+    assert response.json()["error_code"] == "authentication_failed"

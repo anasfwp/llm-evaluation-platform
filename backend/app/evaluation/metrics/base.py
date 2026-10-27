@@ -43,6 +43,8 @@ class Metric(ABC):
     required_inputs: ClassVar[tuple[str, ...]]
     description: ClassVar[str]
     Config: ClassVar[type[BaseModel]] = NoConfig
+    # Whether summaries also report the sum of scores (meaningful for additive metrics like cost).
+    aggregate_total: ClassVar[bool] = False
 
     def __init__(self, config: Mapping[str, Any] | None = None) -> None:
         self.config = self.Config.model_validate(dict(config or {}))

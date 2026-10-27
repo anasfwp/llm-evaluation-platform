@@ -35,11 +35,11 @@ from app.db.repositories import runs as repo
 from app.domain.runs import CaseResult, CaseStatus, EvalConfig, RunStatus
 from app.evaluation.engine import RunPlan, run_evaluation
 from app.evaluation.metrics.base import Metric
-from app.evaluation.registry import build_metric
+from app.evaluation.registry import build_metric, freeze_selections
 from app.providers.registry import get_provider
 from app.schemas.run import RunCreate
 from app.services.dataset_service import get_dataset
-from app.services.model_config_service import to_snapshot
+from app.services.model_config_service import check_env_references, to_snapshot
 from app.services.project_service import require_active_project
 from app.services.report_service import summarize_persisted
 from app.utils.redaction import safe_error_message
@@ -80,6 +80,7 @@ def start_run(
     *,
     max_cases: int,
     max_models: int,
+    allowed_env: frozenset[str],
 ) -> EvaluationRun:
     project = require_active_project(session, data.project_id)
     dataset = get_dataset(session, data.dataset_id)
@@ -114,13 +115,18 @@ def start_run(
     ]
     if missing:
         raise InvalidRequestError("unknown model configuration", missing)
+    # Re-checked at run time: the allowlist may have been tightened since the model was saved.
+    for model in models:
+        check_env_references(
+            model.provider, model.parameters_json, model.secret_reference, allowed_env
+        )
 
     metrics = _build_metrics(data)
     config = EvalConfig(
         project=project.name,
         dataset=f"{dataset.name}@v{version.version_number}",
         models=[to_snapshot(m) for m in models],
-        metrics=data.metrics,
+        metrics=freeze_selections(data.metrics),
         run=data.run_config,
     )
     run = EvaluationRun(

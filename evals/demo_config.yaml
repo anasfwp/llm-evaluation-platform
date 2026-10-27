@@ -35,6 +35,10 @@ metrics:
     version: "1.0"
   - name: latency
     version: "1.0"
+  # Uses the bundled pricing table (frozen into the run snapshot). The fake
+  # provider has illustrative rates only, so this shows the mechanics, not real costs.
+  - name: estimated_cost
+    version: "1.0"
 
 run:
   timeout_seconds: 10

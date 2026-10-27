@@ -45,7 +45,30 @@ def _secret_like_keys(value: Any, path: str = "parameters") -> list[str]:
     return found
 
 
-def _validate(provider: str, parameters: dict[str, Any]) -> None:
+def check_env_references(
+    provider: str,
+    parameters: dict[str, Any],
+    secret_reference: str | None,
+    allowed_env: frozenset[str],
+) -> None:
+    """Reject configurations that would make the worker read non-allowlisted variables."""
+    factory = get_provider(provider)
+    references = factory.env_references(parameters, secret_reference)
+    denied = [
+        Issue(location, f"environment variable '{name}' is not in PROVIDER_ENV_ALLOWLIST")
+        for location, name in references.items()
+        if name not in allowed_env
+    ]
+    if denied:
+        raise InvalidRequestError("model configuration references disallowed variables", denied)
+
+
+def _validate(
+    provider: str,
+    parameters: dict[str, Any],
+    secret_reference: str | None,
+    allowed_env: frozenset[str],
+) -> None:
     try:
         factory = get_provider(provider)
     except KeyError as exc:
@@ -60,6 +83,7 @@ def _validate(provider: str, parameters: dict[str, Any]) -> None:
         raise InvalidRequestError(
             "invalid provider parameters", issues_from_validation_error(exc, prefix="parameters")
         ) from None
+    check_env_references(provider, parameters, secret_reference, allowed_env)
 
 
 def to_snapshot(config: ModelConfig) -> ModelConfigSnapshot:
@@ -70,16 +94,21 @@ def to_snapshot(config: ModelConfig) -> ModelConfigSnapshot:
         parameters=config.parameters_json,
         timeout_seconds=config.timeout_seconds,
         max_concurrency=config.max_concurrency,
+        secret_reference=config.secret_reference,
     )
 
 
 def create_model_config(
-    session: Session, project_id: uuid.UUID, data: ModelConfigCreate
+    session: Session,
+    project_id: uuid.UUID,
+    data: ModelConfigCreate,
+    *,
+    allowed_env: frozenset[str],
 ) -> ModelConfig:
     require_active_project(session, project_id)
     if repo.get_by_name(session, project_id, data.name) is not None:
         raise ConflictError(f"a model configuration named '{data.name}' already exists")
-    _validate(data.provider, data.parameters)
+    _validate(data.provider, data.parameters, data.secret_reference, allowed_env)
     config = ModelConfig(
         project_id=project_id,
         name=data.name,
@@ -110,11 +139,21 @@ def list_model_configs(
 
 
 def update_model_config(
-    session: Session, model_config_id: uuid.UUID, data: ModelConfigUpdate
+    session: Session,
+    model_config_id: uuid.UUID,
+    data: ModelConfigUpdate,
+    *,
+    allowed_env: frozenset[str],
 ) -> ModelConfig:
     config = get_model_config(session, model_config_id)
+    parameters = data.parameters if data.parameters is not None else config.parameters_json
+    secret_reference = (
+        data.secret_reference
+        if "secret_reference" in data.model_fields_set
+        else config.secret_reference
+    )
+    _validate(config.provider, parameters, secret_reference, allowed_env)
     if data.parameters is not None:
-        _validate(config.provider, data.parameters)
         config.parameters_json = data.parameters
     if data.model_id is not None:
         config.model_id = data.model_id
@@ -144,10 +183,13 @@ def test_connectivity(config: ModelConfig, *, timeout_seconds: float = 15) -> Co
     start = time.perf_counter()
 
     async def call() -> None:
-        await asyncio.wait_for(
-            adapter.generate(request=request, model_config=snapshot, timeout_seconds=timeout),
-            timeout=timeout,
-        )
+        try:
+            await asyncio.wait_for(
+                adapter.generate(request=request, model_config=snapshot, timeout_seconds=timeout),
+                timeout=timeout,
+            )
+        finally:
+            await adapter.aclose()
 
     try:
         asyncio.run(call())

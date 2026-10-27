@@ -1,0 +1,44 @@
+# Bundled pricing table for the `estimated_cost` metric (USD per million tokens).
+#
+# Prices change. Verify against the provider's current price list before relying
+# on an estimate, and bump `pricing_version` whenever an entry changes. A run
+# freezes the table it used into its configuration snapshot, so editing this
+# file never changes the cost of a past run.
+#
+# Prices are list prices for standard requests. Discounts and surcharges
+# (prompt caching, batch, priority tiers, regional or partner pricing) are not
+# modelled. Thinking tokens are included in output_tokens and billed as output.
+# Models without an entry are reported as "not_applicable", never as zero cost.
+schema_version: "1.0"
+pricing_version: "2026-10-27"
+currency: USD
+entries:
+  # Anthropic first-party API list prices, as published on 2026-10-06:
+  # https://platform.claude.com/docs/en/about-claude/pricing
+  - {provider: anthropic, model_id: claude-fable-5-1, input_per_million: 10.00, output_per_million: 50.00, effective_from: 2026-10-06, source: "Anthropic API list price, published 2026-10-06"}
+  - {provider: anthropic, model_id: claude-fable-5, input_per_million: 10.00, output_per_million: 50.00, effective_from: 2026-10-06, source: "Anthropic API list price, published 2026-10-06"}
+  - {provider: anthropic, model_id: claude-opus-5-5, input_per_million: 4.00, output_per_million: 20.00, effective_from: 2026-10-06, source: "Anthropic API list price, published 2026-10-06"}
+  - {provider: anthropic, model_id: claude-opus-5, input_per_million: 5.00, output_per_million: 25.00, effective_from: 2026-10-06, source: "Anthropic API list price, published 2026-10-06"}
+  - {provider: anthropic, model_id: claude-opus-4-8, input_per_million: 5.00, output_per_million: 25.00, effective_from: 2026-10-06, source: "Anthropic API list price, published 2026-10-06"}
+  - {provider: anthropic, model_id: claude-opus-4-7, input_per_million: 5.00, output_per_million: 25.00, effective_from: 2026-10-06, source: "Anthropic API list price, published 2026-10-06"}
+  - {provider: anthropic, model_id: claude-opus-4-6, input_per_million: 5.00, output_per_million: 25.00, effective_from: 2026-10-06, source: "Anthropic API list price, published 2026-10-06"}
+  - {provider: anthropic, model_id: claude-sonnet-5-5, input_per_million: 2.00, output_per_million: 10.00, effective_from: 2026-10-06, source: "Anthropic API list price, published 2026-10-06"}
+  - {provider: anthropic, model_id: claude-sonnet-5, input_per_million: 2.00, output_per_million: 10.00, effective_from: 2026-10-06, source: "Anthropic API list price, published 2026-10-06"}
+  - {provider: anthropic, model_id: claude-sonnet-4-6, input_per_million: 3.00, output_per_million: 15.00, effective_from: 2026-10-06, source: "Anthropic API list price, published 2026-10-06"}
+  - provider: anthropic
+    model_id: claude-haiku-5-5
+    input_per_million: 0.10
+    output_per_million: 0.50
+    long_context_threshold_tokens: 100000
+    long_context_input_per_million: 0.50
+    long_context_output_per_million: 2.50
+    effective_from: 2026-10-06
+    source: "Anthropic API list price, published 2026-10-06 (higher rate above 100K prompt tokens)"
+  - {provider: anthropic, model_id: claude-haiku-4-5, input_per_million: 1.00, output_per_million: 5.00, effective_from: 2026-10-06, source: "Anthropic API list price, published 2026-10-06"}
+
+  # The deterministic fake provider is free. These illustrative rates exist only
+  # so demos and CI exercise the cost metric end to end; they are not real prices.
+  - {provider: fake, model_id: "*", input_per_million: 1.00, output_per_million: 2.00, effective_from: 2026-01-01, source: "Illustrative rate for the fake provider; not a real price"}
+
+  # OpenAI and OpenAI-compatible endpoints: add entries for the models you use,
+  # e.g. {provider: openai, model_id: <model>, input_per_million: ..., ...}.

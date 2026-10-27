@@ -6,7 +6,7 @@ import csv
 import io
 from pathlib import Path
 
-from app.domain.runs import CaseStatus, RunReport
+from app.domain.runs import CaseStatus, RunReport, UsageSummary
 
 MAX_FAILURES_LISTED = 20
 _FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
@@ -59,7 +59,21 @@ def write_markdown_report(report: RunReport, path: Path) -> None:
 
 
 def _fmt(value: float | None, digits: int = 3) -> str:
-    return "n/a" if value is None else f"{value:.{digits}f}".rstrip("0").rstrip(".")
+    if value is None:
+        return "n/a"
+    if 0 < abs(value) < 10**-digits:  # e.g. per-case costs in USD
+        return f"{value:.3g}"
+    return f"{value:.{digits}f}".rstrip("0").rstrip(".")
+
+
+# Statistics shown next to the mean for specific metrics.
+_EXTRA_COLUMNS: dict[str, tuple[str, ...]] = {"latency": ("p95",), "estimated_cost": ("total",)}
+
+
+def _tokens(usage: UsageSummary) -> str:
+    if usage.cases_with_usage == 0:
+        return "n/a"
+    return f"{usage.input_tokens_total} / {usage.output_tokens_total}"
 
 
 def _cell(text: str | None, limit: int = 80) -> str:
@@ -86,9 +100,9 @@ def render_markdown(report: RunReport) -> str:
     ]
 
     metric_names = [m.name for m in report.metrics]
-    header = ["Model", "Cases", "Errors", "Error rate"]
+    header = ["Model", "Cases", "Errors", "Error rate", "Tokens in / out"]
     for name in metric_names:
-        header += [f"{name} mean", f"{name} p95"] if name == "latency" else [f"{name} mean"]
+        header += [f"{name} mean", *(f"{name} {extra}" for extra in _EXTRA_COLUMNS.get(name, ()))]
     lines.append("| " + " | ".join(header) + " |")
     lines.append("|" + "---|" * len(header))
     for summary in report.summaries:
@@ -97,11 +111,13 @@ def render_markdown(report: RunReport) -> str:
             str(summary.case_count),
             str(summary.error_count),
             _fmt(summary.error_rate),
+            _tokens(summary.usage),
         ]
         for name in metric_names:
             stats = summary.metrics.get(name)
-            mean = _fmt(stats.mean if stats else None)
-            row += [mean, _fmt(stats.p95 if stats else None)] if name == "latency" else [mean]
+            row.append(_fmt(stats.mean if stats else None))
+            for extra in _EXTRA_COLUMNS.get(name, ()):
+                row.append(_fmt(getattr(stats, extra) if stats else None))
         lines.append("| " + " | ".join(row) + " |")
 
     small = [
@@ -112,6 +128,13 @@ def render_markdown(report: RunReport) -> str:
             "",
             f"> Small sample (< 20 scored cases) for: {', '.join(small)}. "
             "Treat p95 and other percentiles as indicative only.",
+        ]
+
+    if "estimated_cost" in metric_names:
+        lines += [
+            "",
+            "> estimated_cost is in USD, from provider-reported tokens and the pricing table "
+            "frozen into this run's config. It is an estimate, not billing data.",
         ]
 
     if report.gate is not None:

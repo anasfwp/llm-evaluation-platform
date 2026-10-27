@@ -402,7 +402,7 @@ Dataset + Run Configuration
 
 ## 5. Minimal first-phase structure
 
-Do not ask Claude Code to generate the entire tree at once. Begin with
+Do not generate the entire tree at once. Begin with
 this smaller vertical slice:
 
 ``` text
@@ -550,7 +550,7 @@ pass.
     from logs.
 -   Store a secret reference or provider configuration identifier rather
     than copying raw credentials into run snapshots.
--   Do not place real API keys in Claude Code prompts, screenshots,
+-   Do not place real API keys in AI prompts, screenshots,
     issues, or commits.
 -   The deterministic fake provider is the default for tests and public
     demos.
@@ -612,9 +612,9 @@ consequences, and date.
 
 ------------------------------------------------------------------------
 
-## 12. Claude Code implementation guardrails
+## 12. Implementation guardrails
 
-Use Claude Code as an implementation assistant, but require it to: -
+When using an AI coding assistant, require it to: -
 read `REQUIREMENTS.md` and `PROJECT_MAP.md` before changing
 architecture; - implement one milestone at a time; - list files it plans
 to create or modify before broad changes; - avoid generating every

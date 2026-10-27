@@ -21,7 +21,7 @@ as a 0 score in quality metrics. A quality mean therefore describes the
 cases that got an answer, so gate on `error_rate` as well (see
 `evals/gates.example.yaml`).
 
-## Implemented metrics (Phase 1)
+## Implemented metrics
 
 ### `exact_match` v1.0 — answer quality, higher is better, range [0, 1]
 
@@ -46,6 +46,31 @@ cases that got an answer, so gate on `error_rate` as well (see
 - **Limitation:** includes local scheduling overhead. The fake provider's
   simulated latency is affected by OS timer resolution (≈15 ms on Windows).
 
+### `estimated_cost` v1.0 — cost, lower is better, unit USD
+
+- **Requires:** provider-reported `input_tokens` and `output_tokens`, and a
+  price for the response's `provider` + `model_id` in the pricing table.
+- **Score:** `input_tokens × input_price + output_tokens × output_price`,
+  prices per million tokens. Entries can define a long-context tier: when
+  the prompt exceeds `long_context_threshold_tokens`, the whole call uses
+  the long-context rates.
+- **Pricing table:** `backend/app/evaluation/default_pricing.yaml`
+  (`pricing_version`, one entry per provider/model with `effective_from`,
+  optional `effective_to`, and a `source`). `model_id: "*"` matches any
+  model of a provider; an exact match always wins. A run **freezes** the
+  table into its config snapshot, so the config hash covers the prices and
+  editing the file never changes a past run. To use your own prices, pass
+  a full table as the metric's `pricing` config.
+- **Details per case:** `input_cost`, `output_cost`, `currency`,
+  `pricing_version`, `price_effective_from`, `long_context_rate`,
+  `is_estimate: true`.
+- **Not applicable** when usage is not reported or the model has no
+  price. A missing price is never reported as zero cost.
+- **Limitations:** list prices only. Prompt caching, batch discounts,
+  priority tiers and regional pricing are not modelled. Thinking tokens are
+  billed as output and are included in `output_tokens`. Not billing data.
+  The fake provider's rates are illustrative.
+
 ## Aggregation
 
 For each model and metric, over `scored` results only:
@@ -53,6 +78,8 @@ For each model and metric, over `scored` results only:
 - `mean`, `median`, `min`, `max`
 - `p95`: **nearest-rank** percentile, the smallest observed value with at
   least 95% of observations ≤ it (`sorted[ceil(0.95·n) − 1]`).
+- `total`: sum of scores, only for additive metrics (`estimated_cost`);
+  `null` for the others.
 - `small_sample: true` when fewer than 20 scored observations exist.
   Percentiles from small samples are indicative only.
 
@@ -68,8 +95,8 @@ labelled `usage_method: whitespace_approximation` in `raw_metadata`.
 A gate rule is `metric` + `aggregation` + `operator` + `threshold`,
 optionally scoped to one `model`. It is evaluated per model.
 
-- Aggregations: `mean`, `median`, `p95`, `min`, `max`, `count` (scored
-  count). `error_rate` only supports `overall`.
+- Aggregations: `mean`, `median`, `p95`, `min`, `max`, `total`
+  (additive metrics only, e.g. a run cost budget), `count` (scored count). `error_rate` only supports `overall`.
 - Operators: `gte`, `gt`, `lte`, `lt`, `eq`.
 - **Missing metrics never pass silently.** If a metric was not computed,
   or has no scored cases, `missing_metric_policy` decides: `fail`
@@ -80,7 +107,7 @@ Phase 5.
 
 ## Planned metrics
 
-Text similarity, estimated cost (versioned pricing), LLM-as-judge
+Text similarity, LLM-as-judge
 (versioned rubric), retrieval Precision@k / Recall@k / reciprocal rank
 (explicit relevance labels required), and RAG faithfulness. See the
 roadmap in `README.md`.

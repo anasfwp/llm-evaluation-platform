@@ -10,6 +10,7 @@ incrementally pass ``on_result``; callers that support cancellation pass
 from __future__ import annotations
 
 import asyncio
+import logging
 import time
 import uuid
 from collections.abc import Callable, Mapping, Sequence
@@ -30,6 +31,8 @@ from app.evaluation.metrics.base import Metric, MetricInput
 from app.providers.base import ModelAdapter, ProviderError
 from app.utils.redaction import safe_error_message
 from app.utils.time import utc_now
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -65,8 +68,11 @@ async def run_evaluation(
         limit = asyncio.Semaphore(model.max_concurrency or plan.config.run.max_concurrency)
         adapter = plan.adapters[model.name]
         tasks = [_evaluate_case(plan, adapter, model, case, limit, hooks) for case in cases]
-        # gather preserves order, so results follow dataset order.
-        outcomes = await asyncio.gather(*tasks)
+        try:
+            # gather preserves order, so results follow dataset order.
+            outcomes = await asyncio.gather(*tasks)
+        finally:
+            await _close(adapter)
         cancelled = cancelled or any(outcome is None for outcome in outcomes)
         per_model.append([outcome for outcome in outcomes if outcome is not None])
 
@@ -178,9 +184,21 @@ async def _call_with_retries(
 
         if not error.category.is_transient or attempt > settings.max_retries:
             return None, latency_ms, attempt, error
-        await asyncio.sleep(settings.retry_backoff_seconds * 2 ** (attempt - 1))
+        backoff = settings.retry_backoff_seconds * 2 ** (attempt - 1)
+        # Honour a server-requested wait (already capped by the adapter) when it is longer.
+        await asyncio.sleep(max(backoff, error.retry_after_seconds or 0.0))
 
     raise AssertionError("unreachable")  # pragma: no cover
+
+
+async def _close(adapter: ModelAdapter) -> None:
+    close = getattr(adapter, "aclose", None)
+    if close is None:
+        return
+    try:
+        await close()
+    except Exception:  # cleanup failures must never change a run's outcome
+        logger.warning("could not close adapter", exc_info=True)
 
 
 def _score(metric: Metric, data: MetricInput) -> MetricResult:

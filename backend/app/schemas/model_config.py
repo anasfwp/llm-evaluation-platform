@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.db.models import ModelConfig
 
 # Credentials are referenced by environment-variable name, never sent as values.
-SECRET_REFERENCE_PATTERN = r"^[A-Z][A-Z0-9_]{0,99}$"
+from app.domain.models import SECRET_REFERENCE_PATTERN
 
 
 class ModelConfigCreate(BaseModel):

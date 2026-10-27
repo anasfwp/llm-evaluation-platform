@@ -4,7 +4,7 @@ Base path: `/api/v1`. The OpenAPI schema and interactive docs are served at
 `/openapi.json` and `/docs` while the API is running.
 
 > **No authentication yet.** Anyone who can reach the API can create runs,
-> and once real providers exist (Phase 3) runs can spend provider credits.
+> and runs against hosted providers spend real provider credits.
 > Keep the API bound to `127.0.0.1`; Docker Compose already does this.
 
 ## Conventions
@@ -95,8 +95,12 @@ Provider parameters are validated against the provider's schema. Keys that
 look like credentials (`api_key`, `token`, `secret`, `password`, ...) are
 rejected anywhere in `parameters`. Credentials are referenced through
 `secret_reference`, the *name* of an environment variable (for example
-`OPENAI_API_KEY`) that the worker reads at run time. Only the `fake`
-provider exists in this phase.
+`OPENAI_API_KEY`) that the worker reads at run time. Every variable a
+model configuration references (`secret_reference`, or `base_url_env` for
+`openai_compatible`) must be listed in `PROVIDER_ENV_ALLOWLIST`, otherwise
+the request is rejected with `422`; the check is repeated when a run starts.
+Providers: `fake`, `anthropic`, `openai`, `openai_compatible`; see
+[`providers.md`](providers.md).
 
 ## Runs
 

@@ -10,9 +10,10 @@ from __future__ import annotations
 
 from celery import Celery
 
-from app.core.config import get_settings
+from app.core.config import get_settings, load_local_env
 from app.core.logging import configure_logging
 
+load_local_env()
 _settings = get_settings()
 configure_logging(_settings.log_level)
 

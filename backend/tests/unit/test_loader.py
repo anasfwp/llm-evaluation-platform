@@ -59,9 +59,10 @@ def test_unknown_keys_are_rejected(tmp_path: Path) -> None:
 
 
 def test_unknown_provider_is_located(tmp_path: Path) -> None:
-    models = [{"name": "m1", "provider": "openai", "model_id": "x"}]
+    models = [{"name": "m1", "provider": "no-such-provider", "model_id": "x"}]
     issues = _issues(tmp_path, _config(models=models))
-    assert any(i.startswith("models[0].provider: unknown provider 'openai'") for i in issues)
+    expected = "models[0].provider: unknown provider 'no-such-provider'"
+    assert any(i.startswith(expected) for i in issues)
 
 
 def test_invalid_provider_parameters_are_located(tmp_path: Path) -> None:

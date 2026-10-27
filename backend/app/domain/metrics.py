@@ -20,6 +20,7 @@ class MetricCategory(StrEnum):
     ANSWER_QUALITY = "answer_quality"
     RETRIEVAL_QUALITY = "retrieval_quality"
     PERFORMANCE = "performance"
+    COST = "cost"
 
 
 class MetricDirection(StrEnum):

@@ -138,3 +138,19 @@ def test_rule_validation() -> None:
         GateRule.model_validate({**EM_RULE, "operator": "approximately"})
     with pytest.raises(ValidationError):
         GateConfig.model_validate({"rules": []})
+
+
+def test_total_aggregation_for_cost_budgets() -> None:
+    cost = _stats(0.002).model_copy(update={"total": 0.04})
+    rule: dict[str, Any] = {"metric": "estimated_cost", "aggregation": "total", "operator": "lte"}
+    rule["threshold"] = 0.05
+    assert evaluate_gate(_gate(rule), [_summary(estimated_cost=cost)]).passed is True
+    over = cost.model_copy(update={"total": 0.06})
+    assert evaluate_gate(_gate(rule), [_summary(estimated_cost=over)]).passed is False
+
+
+def test_total_on_metric_without_totals_is_missing_with_reason() -> None:
+    rule = {"metric": "latency", "aggregation": "total", "operator": "lte", "threshold": 1}
+    outcome = evaluate_gate(_gate(rule), [_summary(latency=_stats(5))]).results[0]
+    assert outcome.status == RuleOutcomeStatus.FAILED
+    assert outcome.reason is not None and "does not report aggregation 'total'" in outcome.reason

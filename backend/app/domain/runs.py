@@ -115,6 +115,8 @@ class MetricSummary(BaseModel):
     p95: float | None = None
     min: float | None = None
     max: float | None = None
+    # Sum of scores, reported only for additive metrics such as estimated_cost.
+    total: float | None = None
     # Percentiles over few observations are unstable; flagged rather than hidden.
     small_sample: bool
 

@@ -6,8 +6,9 @@ cost. Run repeatable experiments, compare models and prompt versions,
 inspect failures, and enforce quality gates in CI.
 
 > **Project status:** In development. Phase 1 (deterministic evaluation
-> core + CLI) and Phase 2 (REST API, PostgreSQL persistence, migrations,
-> background worker) are implemented and tested. Everything else below is
+> core + CLI), Phase 2 (REST API, PostgreSQL persistence, migrations,
+> background worker) and Phase 3 (Anthropic, OpenAI and OpenAI-compatible
+> providers, token usage, estimated cost) are implemented and tested. Everything else below is
 > planned. The API has **no authentication yet**: run it on localhost only.
 > Do not treat illustrative sample scores or costs as real benchmark
 > results.
@@ -23,8 +24,15 @@ inspect failures, and enforce quality gates in CI.
     can simulate wrong answers and provider errors.
 -   Engine with bounded concurrency, timeouts, retries for transient
     errors only, and partial-failure handling.
--   Metrics: `exact_match` v1.0 and `latency` v1.0 (mean, median, p95,
-    min, max). See [`docs/metrics.md`](docs/metrics.md).
+-   Metrics: `exact_match` v1.0, `latency` v1.0 (mean, median, p95,
+    min, max) and `estimated_cost` v1.0 (per case and run total, from a
+    versioned pricing table frozen into each run). See
+    [`docs/metrics.md`](docs/metrics.md).
+-   Provider adapters: `anthropic` (official SDK), `openai`, and
+    `openai_compatible` (any Chat Completions server), with token usage,
+    timeouts, bounded retries that honour `Retry-After`, and normalized
+    error codes. Credentials come from allowlisted environment variables.
+    See [`docs/providers.md`](docs/providers.md).
 -   Absolute-threshold quality gates with an explicit missing-metric
     policy.
 -   JSON + Markdown reports that record the dataset content hash, the
@@ -337,7 +345,7 @@ limits.
     metrics, CLI, JSON report
 -   [x] Phase 2: FastAPI, PostgreSQL persistence, migrations, background
     worker
--   [ ] Phase 3: hosted and OpenAI-compatible provider adapters, token
+-   [x] Phase 3: hosted and OpenAI-compatible provider adapters, token
     usage and cost estimation
 -   [ ] Phase 4: judge and retrieval metrics
 -   [ ] Phase 5: run comparisons, baselines, quality gates, CI

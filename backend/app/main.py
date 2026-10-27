@@ -21,7 +21,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app import __version__
 from app.api.v1.endpoints import health
 from app.api.v1.router import api_router
-from app.core.config import Settings, get_settings
+from app.core.config import Settings, get_settings, load_local_env
 from app.core.errors import (
     ConflictError,
     DependencyUnavailableError,
@@ -135,7 +135,9 @@ def _request_context(
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
-    settings = settings or get_settings()
+    if settings is None:  # real server start; tests pass explicit settings
+        load_local_env()
+        settings = get_settings()
     configure_logging(settings.log_level)
     session_factory = build_session_factory(build_engine(settings.database_url))
 

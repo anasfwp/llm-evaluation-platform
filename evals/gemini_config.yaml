@@ -1,0 +1,40 @@
+# Live evaluation against Google Gemini through its OpenAI-compatible endpoint.
+# Costs real money. Needs, in .env or the environment:
+#   OPENAI_COMPATIBLE_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+#   OPENAI_COMPATIBLE_API_KEY=<your Gemini API key>
+# Run from the repository root:  uv run llm-eval run --config evals/gemini_config.yaml
+schema_version: "1.0"
+project: gemini-demo
+dataset: ../datasets/demo_qa.json
+
+models:
+  - name: gemini-flash
+    provider: openai_compatible
+    # Check the models available to your key; older ones are retired for new users.
+    model_id: gemini-3.5-flash
+    parameters:
+      temperature: 0
+      system_prompt: "Answer with the final answer only, no explanation."
+      # No max_tokens: Gemini models think first, and a small limit can leave no answer.
+
+metrics:
+  - name: exact_match
+    version: "1.0"
+  - name: latency
+    version: "1.0"
+  # Reported as not_applicable until Gemini prices are added to the pricing table.
+  - name: estimated_cost
+    version: "1.0"
+
+# The Gemini free tier allows about 5 requests per minute. One request at a time,
+# with retries that wait as long as Google asks (capped at 60s), fits within it;
+# the run takes a few minutes. Raise max_concurrency on a paid tier.
+run:
+  timeout_seconds: 60
+  max_concurrency: 1
+  max_retries: 4
+  retry_backoff_seconds: 2
+
+report:
+  json: ../reports/gemini-run.json
+  markdown: ../reports/gemini-run.md

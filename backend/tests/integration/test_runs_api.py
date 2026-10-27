@@ -255,3 +255,36 @@ def test_runs_rejected_for_archived_project(
     response = _start(client, dataset, two_models)
     assert response.status_code == 409
     assert "archived" in response.json()["error"]["message"]
+
+
+def test_run_estimates_cost_with_frozen_pricing(
+    client: TestClient, dataset: JsonDict, make_model: ModelFactory
+) -> None:
+    accepted = _start(
+        client, dataset, [make_model("priced")], metrics=[*METRICS, {"name": "estimated_cost"}]
+    )
+    assert accepted.status_code == 202, accepted.text
+    run = client.get(f"/api/v1/runs/{accepted.json()['run_id']}").json()
+    assert run["status"] == "completed"
+    # The pricing table used is part of the snapshot (and therefore the config hash).
+    cost_config = run["config_snapshot"]["metrics"][2]["config"]
+    assert cost_config["pricing"]["pricing_version"]
+
+    summary = client.get(f"/api/v1/runs/{run['id']}/report").json()["summaries"][0]
+    cost = summary["metrics"]["estimated_cost"]
+    assert cost["scored_count"] == summary["success_count"]
+    assert cost["total"] == pytest.approx(cost["mean"] * cost["scored_count"])
+    assert cost["total"] > 0
+
+
+def test_run_rechecks_env_allowlist(
+    client: TestClient, dataset: JsonDict, project: JsonDict
+) -> None:
+    model = client.post(
+        f"/api/v1/projects/{project['id']}/models",
+        json={"name": "claude", "provider": "anthropic", "model_id": "claude-opus-5-5"},
+    ).json()
+    client.app.state.settings.provider_env_allowlist = "OPENAI_API_KEY"  # type: ignore[attr-defined]
+    response = _start(client, dataset, [model])
+    assert response.status_code == 422
+    assert "ANTHROPIC_API_KEY" in response.text

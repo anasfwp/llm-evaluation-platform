@@ -5,7 +5,7 @@ import uuid
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 
-from app.api.deps import PaginationDep, SessionDep
+from app.api.deps import PaginationDep, SessionDep, SettingsDep
 from app.schemas.common import ERROR_RESPONSES, Page
 from app.schemas.model_config import (
     ConnectivityResult,
@@ -20,9 +20,11 @@ router = APIRouter(tags=["models"], responses=ERROR_RESPONSES)
 
 @router.post("/projects/{project_id}/models", status_code=status.HTTP_201_CREATED)
 def create_model_config(
-    project_id: uuid.UUID, data: ModelConfigCreate, session: SessionDep
+    project_id: uuid.UUID, data: ModelConfigCreate, session: SessionDep, settings: SettingsDep
 ) -> ModelConfigRead:
-    config = model_config_service.create_model_config(session, project_id, data)
+    config = model_config_service.create_model_config(
+        session, project_id, data, allowed_env=settings.provider_env_allowed
+    )
     return ModelConfigRead.from_model(config)
 
 
@@ -50,9 +52,11 @@ def get_model_config(model_config_id: uuid.UUID, session: SessionDep) -> ModelCo
 
 @router.patch("/models/{model_config_id}")
 def update_model_config(
-    model_config_id: uuid.UUID, data: ModelConfigUpdate, session: SessionDep
+    model_config_id: uuid.UUID, data: ModelConfigUpdate, session: SessionDep, settings: SettingsDep
 ) -> ModelConfigRead:
-    config = model_config_service.update_model_config(session, model_config_id, data)
+    config = model_config_service.update_model_config(
+        session, model_config_id, data, allowed_env=settings.provider_env_allowed
+    )
     return ModelConfigRead.from_model(config)
 
 

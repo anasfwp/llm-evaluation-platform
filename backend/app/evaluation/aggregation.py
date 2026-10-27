@@ -57,6 +57,7 @@ def summarize_metric(metric: Metric, results: Sequence[CaseResult]) -> MetricSum
             "p95": percentile(scores, 95),
             "min": min(scores),
             "max": max(scores),
+            "total": math.fsum(scores) if metric.aggregate_total else None,
         }
     )
 

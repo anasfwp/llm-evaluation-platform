@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from app import __version__
+from app.core.config import load_local_env
 from app.core.errors import InputValidationError
 from app.domain.gates import GateResult
 from app.domain.runs import RunReport
@@ -68,6 +69,8 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    if argv is None:  # invoked from the command line, not programmatically
+        load_local_env()
     args = _build_parser().parse_args(argv)
     try:
         if args.command == "validate":
@@ -172,6 +175,8 @@ def _fmt(value: Any) -> str:
     if value is None:
         return "n/a"
     if isinstance(value, float):
+        if 0 < abs(value) < 0.001:  # e.g. per-case costs in USD
+            return f"{value:.3g}"
         return f"{value:.3f}".rstrip("0").rstrip(".")
     return str(value)
 
@@ -187,9 +192,10 @@ def _print_run_summary(report: RunReport) -> None:
         )
         for name, stats in summary.metrics.items():
             note = "  (small sample)" if stats.small_sample and name == "latency" else ""
+            total = f" total={_fmt(stats.total)}" if stats.total is not None else ""
             print(
                 f"    {name:<12} mean={_fmt(stats.mean)} median={_fmt(stats.median)} "
-                f"p95={_fmt(stats.p95)} scored={stats.scored_count} "
+                f"p95={_fmt(stats.p95)}{total} scored={stats.scored_count} "
                 f"n/a={stats.not_applicable_count}{note}"
             )
         if summary.error_codes:

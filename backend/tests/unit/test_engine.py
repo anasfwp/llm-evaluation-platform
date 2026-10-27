@@ -258,3 +258,42 @@ def test_cancellation_stops_remaining_cases(
     assert report.status == RunStatus.CANCELLED
     assert seen == ["case-0", "case-1"]
     assert [r.case_key for r in report.results] == ["case-0", "case-1"]
+
+
+def test_retry_waits_for_server_requested_delay(
+    make_dataset: Callable[..., Dataset],
+    make_config: Callable[..., EvalConfig],
+    monkeypatch: Any,
+) -> None:
+    waits: list[float] = []
+    real_sleep = asyncio.sleep
+
+    async def fake_sleep(seconds: float) -> None:
+        waits.append(seconds)
+        await real_sleep(0)
+
+    monkeypatch.setattr("app.evaluation.engine.asyncio.sleep", fake_sleep)
+    throttled = ProviderError(
+        ProviderErrorCategory.RATE_LIMITED, "slow down", retry_after_seconds=7.0
+    )
+    adapter = ScriptedAdapter({"case-0": [throttled, _rate_limited()]})
+    config = make_config(max_retries=2, retry_backoff_seconds=0.5)
+    report = _run(config, make_dataset(count=1), {"m1": adapter})
+    assert report.results[0].status == CaseStatus.SUCCESS
+    # Retry-After wins when longer than the backoff; otherwise exponential backoff applies.
+    assert [w for w in waits if w] == [7.0, 1.0]  # zero sleeps come from the adapter
+
+
+def test_adapter_is_closed_after_run(
+    make_dataset: Callable[..., Dataset], make_config: Callable[..., EvalConfig]
+) -> None:
+    class Closable(ScriptedAdapter):
+        closed = 0
+
+        async def aclose(self) -> None:
+            Closable.closed += 1
+            raise RuntimeError("close failed")  # must not change the run outcome
+
+    report = _run(make_config(), make_dataset(count=2), {"m1": Closable()})
+    assert Closable.closed == 1
+    assert report.status == RunStatus.COMPLETED
