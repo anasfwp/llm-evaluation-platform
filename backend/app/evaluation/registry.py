@@ -16,12 +16,14 @@ from app.evaluation.metrics.retrieval import (
     RetrievalPrecisionAtK,
     RetrievalRecallAtK,
 )
+from app.evaluation.metrics.semantic_similarity import SemanticSimilarity
 from app.evaluation.metrics.text_similarity import TokenF1
 from app.evaluation.pricing import default_pricing
 
 _IMPLEMENTED: tuple[type[Metric], ...] = (
     ExactMatch,
     TokenF1,
+    SemanticSimilarity,
     Latency,
     EstimatedCost,
     RetrievalPrecisionAtK,

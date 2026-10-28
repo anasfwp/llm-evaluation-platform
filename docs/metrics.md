@@ -82,6 +82,25 @@ cases that got an answer, so gate on `error_rate` as well (see
 - **Limitation:** lexical only. Paraphrases score low; a wrong answer that
   reuses the question's words can score high.
 
+### `semantic_similarity` v1.0 — answer quality, higher is better, range [-1, 1]
+
+- **Requires:** `expected_output`, a model output, and an embedding model.
+- **Score:** cosine similarity of the embeddings of the expected and the
+  actual output. An empty output scores 0.0.
+- **Config:** `embedding: {provider: fake | openai | openai_compatible,
+  model_id, secret_reference?, base_url_env?, timeout_seconds,
+  max_concurrency}`. `openai_compatible` reads its base URL from the
+  environment variable named by `base_url_env`; both variables must be in
+  `PROVIDER_ENV_ALLOWLIST` when runs are started through the API.
+- **Details:** `embedding_provider`, `embedding_model_id`,
+  `embedding_method`, `embedding_input_tokens`.
+- **`provider: fake`** is a deterministic hashed bag-of-words embedding
+  (`embedding_method: hashed_bag_of_words`): lexical, for demos and CI only.
+- **Limitations:** the score's scale depends on the embedding model (many
+  models rarely produce values below 0), so compare scores only across
+  runs that used the same embedding model. Similar wording is not the same
+  as a correct answer. Embedding calls are not included in `estimated_cost`.
+
 ### Retrieval metrics — retrieval quality, higher is better, range [0, 1]
 
 They need the case's ranked `retrieved_contexts` (by `document_id`) **and**
@@ -186,5 +205,4 @@ Phase 5.
 
 ## Planned metrics
 
-Embedding-based semantic similarity (FR-060) and composite weighted scores
-(FR-061). See the roadmap in `README.md`.
+Composite weighted scores (FR-061) and user-defined metric plugins (FR-064).

@@ -26,7 +26,7 @@ inspect failures, and enforce quality gates in CI.
     can simulate wrong answers and provider errors.
 -   Engine with bounded concurrency, timeouts, retries for transient
     errors only, and partial-failure handling.
--   Metrics: `exact_match`, `token_f1`, `latency` (mean, median, p95,
+-   Metrics: `exact_match`, `token_f1`, `semantic_similarity` (embeddings), `latency` (mean, median, p95,
     min, max), `estimated_cost` (per case and run total, from a
     versioned pricing table frozen into each run), retrieval
     `retrieval_precision_at_k` / `retrieval_recall_at_k` /
