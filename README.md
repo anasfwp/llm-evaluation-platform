@@ -9,8 +9,10 @@ inspect failures, and enforce quality gates in CI.
 > core + CLI), Phase 2 (REST API, PostgreSQL persistence, migrations,
 > background worker) and Phase 3 (Anthropic, OpenAI and OpenAI-compatible
 > providers, token usage, estimated cost) and Phase 4 (LLM-as-judge with versioned
-> rubrics, retrieval Precision@k / Recall@k / reciprocal rank, token F1) are implemented
-> and tested. Everything else below is
+> rubrics, retrieval Precision@k / Recall@k / reciprocal rank, token F1, semantic
+> similarity) and Phase 5 (run comparisons, saved baselines, baseline-relative and
+> per-tag gates, regression reports, CI gating) are implemented and tested.
+> Everything else below is
 > planned. The API has **no authentication yet**: run it on localhost only.
 > Do not treat illustrative sample scores or costs as real benchmark
 > results.
@@ -354,8 +356,8 @@ limits.
     worker
 -   [x] Phase 3: hosted and OpenAI-compatible provider adapters, token
     usage and cost estimation
--   [ ] Phase 4: judge and retrieval metrics
--   [ ] Phase 5: run comparisons, baselines, quality gates, CI
+-   [x] Phase 4: judge and retrieval metrics
+-   [x] Phase 5: run comparisons, baselines, quality gates, CI
     integration
 -   [ ] Phase 6: React dashboard and report exports
 -   [ ] Phase 7: security review, end-to-end tests, screenshots,

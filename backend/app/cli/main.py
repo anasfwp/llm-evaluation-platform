@@ -17,13 +17,19 @@ from typing import Any
 from app import __version__
 from app.core.config import load_local_env
 from app.core.errors import InputValidationError
+from app.domain.comparison import ComparisonSettings, ModelPair, RunComparison
 from app.domain.gates import GateResult
 from app.domain.runs import RunReport
+from app.evaluation.comparison import ComparisonError, compare_runs
 from app.evaluation.engine import run_evaluation
-from app.evaluation.gates import evaluate_gate
+from app.evaluation.gates import evaluate_report_gate
 from app.evaluation.loader import load_config, load_gate_config, load_report
 from app.evaluation.registry import METRICS
-from app.evaluation.reporting import write_json_report, write_markdown_report
+from app.evaluation.reporting import (
+    render_comparison_markdown,
+    write_json_report,
+    write_markdown_report,
+)
 
 EXIT_OK = 0
 EXIT_GATE_FAILED = 1
@@ -54,12 +60,45 @@ def _build_parser() -> argparse.ArgumentParser:
     run.add_argument("--output", type=Path, help="JSON report path (overrides config).")
     run.add_argument("--markdown", type=Path, help="Markdown report path (overrides config).")
     run.add_argument("--gates", type=Path, help="Gate rules YAML (overrides config 'gates').")
+    run.add_argument(
+        "--baseline",
+        type=Path,
+        help="Baseline JSON report: enables relative gate rules and adds a regression section.",
+    )
     run.add_argument("--json", action="store_true", help="Print a machine-readable summary.")
 
     gate = commands.add_parser("gate", help="Evaluate gate rules against an existing JSON report.")
     gate.add_argument("--report", required=True, type=Path, help="JSON report from 'run'.")
     gate.add_argument("--rules", required=True, type=Path, help="Gate rules YAML.")
+    gate.add_argument("--baseline", type=Path, help="Baseline JSON report for relative rules.")
     gate.add_argument("--json", action="store_true", help="Print a machine-readable result.")
+
+    compare = commands.add_parser(
+        "compare", help="Compare a candidate report with a baseline report, case by case."
+    )
+    compare.add_argument("--baseline", required=True, type=Path, help="Baseline JSON report.")
+    compare.add_argument("--candidate", required=True, type=Path, help="Candidate JSON report.")
+    compare.add_argument(
+        "--pass-threshold",
+        type=float,
+        default=0.5,
+        help="Share of a quality metric's range a case must reach to pass (default 0.5).",
+    )
+    compare.add_argument(
+        "--pair",
+        action="append",
+        default=[],
+        metavar="BASELINE=CANDIDATE",
+        help="Pair differently named models; repeatable. Default: pair by identical name.",
+    )
+    compare.add_argument("--output", type=Path, help="Write the comparison as JSON.")
+    compare.add_argument("--markdown", type=Path, help="Write the comparison as Markdown.")
+    compare.add_argument(
+        "--fail-on-regression",
+        action="store_true",
+        help="Exit 1 if any case newly fails, the error rate rises, or a quality mean drops.",
+    )
+    compare.add_argument("--json", action="store_true", help="Print a machine-readable result.")
 
     metrics = commands.add_parser("metrics", help="Inspect available metrics.")
     metrics_commands = metrics.add_subparsers(dest="metrics_command", required=True)
@@ -79,7 +118,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _cmd_run(args)
         if args.command == "gate":
             return _cmd_gate(args)
+        if args.command == "compare":
+            return _cmd_compare(args)
         return _cmd_metrics_list(args)
+    except ComparisonError as exc:
+        print(f"error: invalid input\n{exc}", file=sys.stderr)
+        return EXIT_INVALID_INPUT
     except InputValidationError as exc:
         print(f"error: invalid input\n{exc.format()}", file=sys.stderr)
         return EXIT_INVALID_INPUT
@@ -101,9 +145,14 @@ def _cmd_validate(args: argparse.Namespace) -> int:
 
 def _cmd_run(args: argparse.Namespace) -> int:
     loaded = load_config(args.config, gate_override=args.gates)
+    # Read the baseline first so a bad path fails before any (possibly paid) model calls.
+    baseline = load_report(args.baseline) if args.baseline else None
     report = asyncio.run(run_evaluation(loaded.build_plan()))
+    if baseline is not None:
+        report = report.model_copy(update={"comparison": compare_runs(baseline, report)})
     if loaded.gate is not None:
-        report = report.model_copy(update={"gate": evaluate_gate(loaded.gate, report.summaries)})
+        gate_result = evaluate_report_gate(loaded.gate, report, baseline)
+        report = report.model_copy(update={"gate": gate_result})
 
     report_settings = loaded.config.report
     json_path = args.output or (
@@ -134,6 +183,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
             "report_markdown": str(markdown_path) if markdown_path else None,
             "summaries": [s.model_dump(mode="json") for s in report.summaries],
             "gate": report.gate.model_dump(mode="json") if report.gate else None,
+            "comparison": (_comparison_summary(report.comparison) if report.comparison else None),
         }
         print(json.dumps(payload, indent=2))
     else:
@@ -150,12 +200,56 @@ def _cmd_run(args: argparse.Namespace) -> int:
 def _cmd_gate(args: argparse.Namespace) -> int:
     report = load_report(args.report)
     gate = load_gate_config(args.rules)
-    result = evaluate_gate(gate, report.summaries)
+    baseline = load_report(args.baseline) if args.baseline else None
+    result = evaluate_report_gate(gate, report, baseline)
     if args.json:
         print(json.dumps(result.model_dump(mode="json"), indent=2))
     else:
         _print_gate(result)
     return EXIT_OK if result.passed else EXIT_GATE_FAILED
+
+
+def _parse_pairs(raw: Sequence[str]) -> list[ModelPair] | None:
+    pairs: list[ModelPair] = []
+    for item in raw:
+        baseline, sep, candidate = item.partition("=")
+        if not sep or not baseline or not candidate:
+            raise ComparisonError(f"--pair must look like BASELINE=CANDIDATE, got '{item}'")
+        pairs.append(ModelPair(baseline=baseline, candidate=candidate))
+    return pairs or None
+
+
+def _comparison_summary(comparison: RunComparison) -> dict[str, Any]:
+    return {
+        "regressed": comparison.regressed,
+        "newly_failing": comparison.newly_failing_count,
+        "recovered": comparison.recovered_count,
+        "baseline_run_id": comparison.baseline.run_id,
+    }
+
+
+def _cmd_compare(args: argparse.Namespace) -> int:
+    baseline = load_report(args.baseline)
+    candidate = load_report(args.candidate)
+    if not 0 <= args.pass_threshold <= 1:
+        raise ComparisonError("--pass-threshold must be between 0 and 1")
+    settings = ComparisonSettings(
+        pass_threshold=args.pass_threshold, model_pairs=_parse_pairs(args.pair)
+    )
+    comparison = compare_runs(baseline, candidate, settings)
+    if args.output is not None:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(comparison.model_dump_json(indent=2) + "\n", encoding="utf-8")
+    if args.markdown is not None:
+        args.markdown.parent.mkdir(parents=True, exist_ok=True)
+        args.markdown.write_text(render_comparison_markdown(comparison), encoding="utf-8")
+
+    exit_code = EXIT_GATE_FAILED if args.fail_on_regression and comparison.regressed else EXIT_OK
+    if args.json:
+        print(json.dumps({"exit_code": exit_code, **comparison.model_dump(mode="json")}, indent=2))
+    else:
+        _print_comparison(comparison)
+    return exit_code
 
 
 def _cmd_metrics_list(args: argparse.Namespace) -> int:
@@ -201,13 +295,44 @@ def _print_run_summary(report: RunReport) -> None:
         if summary.error_codes:
             codes = ", ".join(f"{code}={count}" for code, count in summary.error_codes.items())
             print(f"    errors: {codes}")
+    if report.comparison is not None:
+        print()
+        _print_comparison(report.comparison)
     if report.gate is not None:
         print()
         _print_gate(report.gate)
 
 
+def _print_comparison(comparison: RunComparison) -> None:
+    verdict = "REGRESSED" if comparison.regressed else "no regressions"
+    print(
+        f"Comparison with baseline {comparison.baseline.run_id}: {verdict} "
+        f"(newly failing {comparison.newly_failing_count}, "
+        f"recovered {comparison.recovered_count})"
+    )
+    for warning in comparison.warnings:
+        print(f"  warning: {warning}")
+    for name, reason in comparison.excluded_metrics.items():
+        print(f"  not compared: {name} ({reason})")
+    for model in comparison.models:
+        print(f"  {model.candidate_model} vs {model.baseline_model}: {model.cases_compared} cases")
+        for delta in [model.error_rate, *model.metrics]:
+            sign = "+" if (delta.delta or 0) > 0 else ""
+            change = f"{sign}{_fmt(delta.delta)}" if delta.delta is not None else "n/a"
+            label = f"{delta.metric} {delta.aggregation}"
+            print(
+                f"    {label:<26} {_fmt(delta.baseline)} -> {_fmt(delta.candidate)} "
+                f"({change}) {delta.verdict}"
+            )
+        for case in model.newly_failing:
+            print(f"    newly failing: {case.case_key} ({'; '.join(case.candidate_reasons)})")
+        for case in model.recovered:
+            print(f"    recovered: {case.case_key}")
+
+
 def _print_gate(result: GateResult) -> None:
-    print(f"Gate '{result.gate_name}': {'PASSED' if result.passed else 'FAILED'}")
+    against = f" (baseline {result.baseline_run_id})" if result.baseline_run_id else ""
+    print(f"Gate '{result.gate_name}'{against}: {'PASSED' if result.passed else 'FAILED'}")
     for outcome in result.results:
         reason = f"  - {outcome.reason}" if outcome.reason else ""
         print(

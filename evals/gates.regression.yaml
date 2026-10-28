@@ -1,0 +1,33 @@
+# Baseline-relative regression gate. Use with a baseline report:
+#   llm-eval gate --report reports/demo-run.json --rules evals/gates.regression.yaml \
+#     --baseline evals/baselines/demo-baseline.json
+# Relative rules compare each model with the same-named model in the baseline.
+# "Worse" follows the metric's direction (lower latency/cost/error rate is better).
+schema_version: "1.0"
+name: demo-regression-gate
+missing_metric_policy: fail
+
+rules:
+  # Answer quality may not drop at all.
+  - metric: exact_match
+    aggregation: mean
+    kind: relative
+    max_regression: 0
+  # No new provider errors.
+  - metric: error_rate
+    aggregation: overall
+    kind: relative
+    max_regression: 0
+  # Per-tag guard: the geography slice must stay perfect for the reference model.
+  - metric: exact_match
+    aggregation: mean
+    model: fake-reference
+    tag: geography
+    operator: gte
+    threshold: 1.0
+  # Latency is noisy across machines; allow a generous relative increase.
+  - metric: latency
+    aggregation: p95
+    kind: relative
+    max_regression: 300
+    regression_unit: percent

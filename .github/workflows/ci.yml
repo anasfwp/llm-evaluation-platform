@@ -44,6 +44,18 @@ jobs:
           uv run llm-eval run --config evals/demo_config.yaml
           --output reports/demo-run.json --markdown reports/demo-run.md
 
+      - name: Regression gate against the committed baseline
+        run: >-
+          uv run llm-eval gate --report reports/demo-run.json
+          --rules evals/gates.regression.yaml
+          --baseline evals/baselines/demo-baseline.json
+
+      - name: Regression report against the committed baseline
+        run: >-
+          uv run llm-eval compare --baseline evals/baselines/demo-baseline.json
+          --candidate reports/demo-run.json --fail-on-regression
+          --markdown reports/demo-comparison.md
+
       - name: Upload reports
         if: always()
         uses: actions/upload-artifact@v4

@@ -6,14 +6,37 @@ import math
 import statistics
 from collections import Counter
 from collections.abc import Sequence
+from dataclasses import dataclass
+from typing import Protocol
 
 from app.domain.metrics import MetricStatus
 from app.domain.models import ModelConfigSnapshot
 from app.domain.runs import CaseResult, CaseStatus, MetricSummary, ModelSummary, UsageSummary
-from app.evaluation.metrics.base import Metric
 
 # Below this many observations, percentile statistics are flagged as small-sample.
 SMALL_SAMPLE_THRESHOLD = 20
+
+
+class SummarizableMetric(Protocol):
+    """What aggregation needs to know about a metric (a ``Metric`` satisfies it)."""
+
+    @property
+    def name(self) -> str: ...
+
+    @property
+    def version(self) -> str: ...
+
+    @property
+    def aggregate_total(self) -> bool: ...
+
+
+@dataclass(frozen=True)
+class MetricShape:
+    """A metric known only from a report (name, version), for re-aggregating stored results."""
+
+    name: str
+    version: str
+    aggregate_total: bool
 
 
 def percentile(values: Sequence[float], q: float) -> float:
@@ -27,7 +50,7 @@ def percentile(values: Sequence[float], q: float) -> float:
     return ordered[rank - 1]
 
 
-def summarize_metric(metric: Metric, results: Sequence[CaseResult]) -> MetricSummary:
+def summarize_metric(metric: SummarizableMetric, results: Sequence[CaseResult]) -> MetricSummary:
     scores: list[float] = []
     not_applicable = errors = 0
     for case in results:
@@ -63,7 +86,9 @@ def summarize_metric(metric: Metric, results: Sequence[CaseResult]) -> MetricSum
 
 
 def summarize_model(
-    model: ModelConfigSnapshot, results: Sequence[CaseResult], metrics: Sequence[Metric]
+    model: ModelConfigSnapshot,
+    results: Sequence[CaseResult],
+    metrics: Sequence[SummarizableMetric],
 ) -> ModelSummary:
     errors = [r for r in results if r.status == CaseStatus.ERROR]
     with_usage = [r for r in results if r.input_tokens is not None or r.output_tokens is not None]

@@ -163,3 +163,72 @@ CSV has one row per (model, case) with `<metric>_score` and `<metric>_status`
 columns. Cells that begin with `=`, `+`, `-`, `@`, a tab or a carriage return are prefixed with `'` so
 spreadsheets do not run model output as a formula. The JSON report has the
 same schema as the CLI's `llm-eval run --output` report.
+
+## Comparisons
+
+Both runs must be `completed` and belong to the same project.
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/api/v1/comparisons` | Compare two runs → `201` with the stored comparison |
+| GET | `/api/v1/comparisons?project_id=` | List comparisons (regressed flag and counts) |
+| GET | `/api/v1/comparisons/{id}` | Full comparison |
+| GET | `/api/v1/comparisons/{id}/report?format=markdown\|json` | Regression report download |
+
+```json
+POST /api/v1/comparisons
+{
+  "baseline_run_id": "…",            // or "baseline_id": a saved baseline
+  "candidate_run_id": "…",
+  "settings": {
+    "pass_threshold": 0.5,           // share of a quality metric's range a case needs to pass
+    "model_pairs": [{"baseline": "model-a", "candidate": "model-b"}]   // optional
+  }
+}
+```
+
+`result` holds, per model pair: aligned case count, cases only in one run,
+error-rate and metric deltas (mean; p95 for latency; total for cost) with an
+`improved` / `regressed` / `unchanged` / `not_comparable` verdict,
+`newly_failing` and `recovered` cases with reasons, and per-case score
+changes (worst first). `excluded_metrics` lists metrics that were not
+compared because they are missing from one run or differ in version or
+configuration. `regressed` is true for newly failing cases, a higher error
+rate, or a lower quality-metric mean; latency and cost deltas are
+informational.
+
+## Baselines
+
+A baseline is a named pointer to a completed run in the same project
+(FR-087). Deleting a baseline never deletes the run.
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/api/v1/projects/{project_id}/baselines` | `{name, run_id, description?}` → `201` |
+| GET | `/api/v1/projects/{project_id}/baselines` | List |
+| GET / PATCH / DELETE | `/api/v1/baselines/{id}` | Read, rename or repoint (`run_id`), delete (`204`) |
+
+## Gates
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/api/v1/projects/{project_id}/gates` | Save `{name, missing_metric_policy, rules}` → `201` |
+| GET | `/api/v1/projects/{project_id}/gates` | List saved gates |
+| GET / PATCH | `/api/v1/gates/{id}` | Read or update |
+| POST | `/api/v1/gates/evaluate` | Evaluate a gate against a completed run → `200` |
+
+```json
+POST /api/v1/gates/evaluate
+{
+  "run_id": "…",
+  "gate_id": "…",                    // or inline "rules": [...] (+ optional "missing_metric_policy")
+  "baseline_id": "…"                 // or "baseline_run_id"; needed by relative rules
+}
+```
+
+The response is `{gate_name, passed, baseline_run_id, results[]}`; every
+result has `status` (`passed`/`failed`/`skipped`/`warned`), the `actual`
+value, and a `reason` for anything but a pass. Relative rules also report
+`baseline` and `regression`. The HTTP status is `200` whether the gate
+passes or fails; check `passed`. Rule syntax is in
+[`metrics.md`](metrics.md#gates).

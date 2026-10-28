@@ -1,0 +1,3157 @@
+{
+  "report_schema_version": "1.0",
+  "run_id": "34812260-4e18-4dcd-bbfb-fca7afc8bc71",
+  "project": "demo-project",
+  "status": "completed",
+  "software_version": "0.1.0",
+  "started_at": "2026-10-28T17:36:59.508569Z",
+  "finished_at": "2026-10-28T17:36:59.886387Z",
+  "dataset": {
+    "name": "demo-qa",
+    "schema_version": "1.0",
+    "content_hash": "sha256:61573e3e9be72ede90f3ee1088d1718aadee3a155995b68faa1951e8857e5dad",
+    "case_count": 21,
+    "source": "../datasets/demo_qa.json"
+  },
+  "config_hash": "sha256:afacf69063f60ff28c41a79c008a133ca7fdd4b88da9445890f4ac318bb7226d",
+  "config_snapshot": {
+    "schema_version": "1.0",
+    "project": "demo-project",
+    "dataset": "../datasets/demo_qa.json",
+    "models": [
+      {
+        "name": "fake-reference",
+        "provider": "fake",
+        "model_id": "fake-oracle-v1",
+        "parameters": {
+          "mode": "expected",
+          "latency_ms": 5,
+          "overrides": {
+            "open-greeting": {
+              "output": "Hi there! How can I help you today?"
+            }
+          }
+        },
+        "timeout_seconds": null,
+        "max_concurrency": null,
+        "secret_reference": null
+      },
+      {
+        "name": "fake-noisy",
+        "provider": "fake",
+        "model_id": "fake-noisy-v1",
+        "parameters": {
+          "mode": "expected",
+          "latency_ms": 15,
+          "overrides": {
+            "capital-australia": {
+              "output": "Sydney"
+            },
+            "science-water-formula": {
+              "output": "h2o."
+            },
+            "math-sqrt-001": {
+              "output": "The square root of 144 is 12."
+            },
+            "format-json-prime": {
+              "output": "{\"is_prime\": false}"
+            },
+            "cs-http-not-found": {
+              "error": "rate_limited"
+            },
+            "open-greeting": {
+              "output": "Hello, what do you need?"
+            }
+          }
+        },
+        "timeout_seconds": null,
+        "max_concurrency": null,
+        "secret_reference": null
+      }
+    ],
+    "metrics": [
+      {
+        "name": "exact_match",
+        "version": "1.0",
+        "config": {}
+      },
+      {
+        "name": "latency",
+        "version": "1.0",
+        "config": {}
+      },
+      {
+        "name": "estimated_cost",
+        "version": "1.0",
+        "config": {
+          "pricing": {
+            "schema_version": "1.0",
+            "pricing_version": "2026-10-27",
+            "currency": "USD",
+            "entries": [
+              {
+                "provider": "anthropic",
+                "model_id": "claude-fable-5-1",
+                "input_per_million": 10.0,
+                "output_per_million": 50.0,
+                "long_context_threshold_tokens": null,
+                "long_context_input_per_million": null,
+                "long_context_output_per_million": null,
+                "effective_from": "2026-10-06",
+                "effective_to": null,
+                "source": "Anthropic API list price, published 2026-10-06"
+              },
+              {
+                "provider": "anthropic",
+                "model_id": "claude-fable-5",
+                "input_per_million": 10.0,
+                "output_per_million": 50.0,
+                "long_context_threshold_tokens": null,
+                "long_context_input_per_million": null,
+                "long_context_output_per_million": null,
+                "effective_from": "2026-10-06",
+                "effective_to": null,
+                "source": "Anthropic API list price, published 2026-10-06"
+              },
+              {
+                "provider": "anthropic",
+                "model_id": "claude-opus-5-5",
+                "input_per_million": 4.0,
+                "output_per_million": 20.0,
+                "long_context_threshold_tokens": null,
+                "long_context_input_per_million": null,
+                "long_context_output_per_million": null,
+                "effective_from": "2026-10-06",
+                "effective_to": null,
+                "source": "Anthropic API list price, published 2026-10-06"
+              },
+              {
+                "provider": "anthropic",
+                "model_id": "claude-opus-5",
+                "input_per_million": 5.0,
+                "output_per_million": 25.0,
+                "long_context_threshold_tokens": null,
+                "long_context_input_per_million": null,
+                "long_context_output_per_million": null,
+                "effective_from": "2026-10-06",
+                "effective_to": null,
+                "source": "Anthropic API list price, published 2026-10-06"
+              },
+              {
+                "provider": "anthropic",
+                "model_id": "claude-opus-4-8",
+                "input_per_million": 5.0,
+                "output_per_million": 25.0,
+                "long_context_threshold_tokens": null,
+                "long_context_input_per_million": null,
+                "long_context_output_per_million": null,
+                "effective_from": "2026-10-06",
+                "effective_to": null,
+                "source": "Anthropic API list price, published 2026-10-06"
+              },
+              {
+                "provider": "anthropic",
+                "model_id": "claude-opus-4-7",
+                "input_per_million": 5.0,
+                "output_per_million": 25.0,
+                "long_context_threshold_tokens": null,
+                "long_context_input_per_million": null,
+                "long_context_output_per_million": null,
+                "effective_from": "2026-10-06",
+                "effective_to": null,
+                "source": "Anthropic API list price, published 2026-10-06"
+              },
+              {
+                "provider": "anthropic",
+                "model_id": "claude-opus-4-6",
+                "input_per_million": 5.0,
+                "output_per_million": 25.0,
+                "long_context_threshold_tokens": null,
+                "long_context_input_per_million": null,
+                "long_context_output_per_million": null,
+                "effective_from": "2026-10-06",
+                "effective_to": null,
+                "source": "Anthropic API list price, published 2026-10-06"
+              },
+              {
+                "provider": "anthropic",
+                "model_id": "claude-sonnet-5-5",
+                "input_per_million": 2.0,
+                "output_per_million": 10.0,
+                "long_context_threshold_tokens": null,
+                "long_context_input_per_million": null,
+                "long_context_output_per_million": null,
+                "effective_from": "2026-10-06",
+                "effective_to": null,
+                "source": "Anthropic API list price, published 2026-10-06"
+              },
+              {
+                "provider": "anthropic",
+                "model_id": "claude-sonnet-5",
+                "input_per_million": 2.0,
+                "output_per_million": 10.0,
+                "long_context_threshold_tokens": null,
+                "long_context_input_per_million": null,
+                "long_context_output_per_million": null,
+                "effective_from": "2026-10-06",
+                "effective_to": null,
+                "source": "Anthropic API list price, published 2026-10-06"
+              },
+              {
+                "provider": "anthropic",
+                "model_id": "claude-sonnet-4-6",
+                "input_per_million": 3.0,
+                "output_per_million": 15.0,
+                "long_context_threshold_tokens": null,
+                "long_context_input_per_million": null,
+                "long_context_output_per_million": null,
+                "effective_from": "2026-10-06",
+                "effective_to": null,
+                "source": "Anthropic API list price, published 2026-10-06"
+              },
+              {
+                "provider": "anthropic",
+                "model_id": "claude-haiku-5-5",
+                "input_per_million": 0.1,
+                "output_per_million": 0.5,
+                "long_context_threshold_tokens": 100000,
+                "long_context_input_per_million": 0.5,
+                "long_context_output_per_million": 2.5,
+                "effective_from": "2026-10-06",
+                "effective_to": null,
+                "source": "Anthropic API list price, published 2026-10-06 (higher rate above 100K prompt tokens)"
+              },
+              {
+                "provider": "anthropic",
+                "model_id": "claude-haiku-4-5",
+                "input_per_million": 1.0,
+                "output_per_million": 5.0,
+                "long_context_threshold_tokens": null,
+                "long_context_input_per_million": null,
+                "long_context_output_per_million": null,
+                "effective_from": "2026-10-06",
+                "effective_to": null,
+                "source": "Anthropic API list price, published 2026-10-06"
+              },
+              {
+                "provider": "fake",
+                "model_id": "*",
+                "input_per_million": 1.0,
+                "output_per_million": 2.0,
+                "long_context_threshold_tokens": null,
+                "long_context_input_per_million": null,
+                "long_context_output_per_million": null,
+                "effective_from": "2026-01-01",
+                "effective_to": null,
+                "source": "Illustrative rate for the fake provider; not a real price"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "run": {
+      "timeout_seconds": 10.0,
+      "max_concurrency": 4,
+      "max_retries": 1,
+      "retry_backoff_seconds": 0.1,
+      "max_cases": 1000
+    },
+    "report": {
+      "json": "../reports/demo-run.json",
+      "markdown": "../reports/demo-run.md"
+    },
+    "gates": "gates.example.yaml"
+  },
+  "metrics": [
+    {
+      "name": "exact_match",
+      "version": "1.0",
+      "category": "answer_quality",
+      "direction": "higher_is_better",
+      "unit": null,
+      "score_range": [
+        0.0,
+        1.0
+      ],
+      "required_inputs": [
+        "expected_output",
+        "actual_output"
+      ],
+      "description": "1.0 if the output equals the expected output after normalization (NFKC, casefold, whitespace collapse, surrounding punctuation stripped), else 0.0.",
+      "config": {
+        "normalize": true
+      }
+    },
+    {
+      "name": "latency",
+      "version": "1.0",
+      "category": "performance",
+      "direction": "lower_is_better",
+      "unit": "ms",
+      "score_range": [
+        0.0,
+        null
+      ],
+      "required_inputs": [
+        "latency_ms"
+      ],
+      "description": "Wall-clock time of the successful model call in milliseconds, measured by the engine around the adapter call (final attempt only; retries are not included).",
+      "config": {}
+    },
+    {
+      "name": "estimated_cost",
+      "version": "1.0",
+      "category": "cost",
+      "direction": "lower_is_better",
+      "unit": "USD",
+      "score_range": [
+        0.0,
+        null
+      ],
+      "required_inputs": [
+        "input_tokens",
+        "output_tokens",
+        "pricing entry"
+      ],
+      "description": "Estimated cost of the successful model call: provider-reported input and output tokens times the per-million-token prices in the run's pricing table. Not billing data. Not applicable when usage is not reported or the model has no price.",
+      "config": {
+        "pricing": {
+          "schema_version": "1.0",
+          "pricing_version": "2026-10-27",
+          "currency": "USD",
+          "entries": [
+            {
+              "provider": "anthropic",
+              "model_id": "claude-fable-5-1",
+              "input_per_million": 10.0,
+              "output_per_million": 50.0,
+              "long_context_threshold_tokens": null,
+              "long_context_input_per_million": null,
+              "long_context_output_per_million": null,
+              "effective_from": "2026-10-06",
+              "effective_to": null,
+              "source": "Anthropic API list price, published 2026-10-06"
+            },
+            {
+              "provider": "anthropic",
+              "model_id": "claude-fable-5",
+              "input_per_million": 10.0,
+              "output_per_million": 50.0,
+              "long_context_threshold_tokens": null,
+              "long_context_input_per_million": null,
+              "long_context_output_per_million": null,
+              "effective_from": "2026-10-06",
+              "effective_to": null,
+              "source": "Anthropic API list price, published 2026-10-06"
+            },
+            {
+              "provider": "anthropic",
+              "model_id": "claude-opus-5-5",
+              "input_per_million": 4.0,
+              "output_per_million": 20.0,
+              "long_context_threshold_tokens": null,
+              "long_context_input_per_million": null,
+              "long_context_output_per_million": null,
+              "effective_from": "2026-10-06",
+              "effective_to": null,
+              "source": "Anthropic API list price, published 2026-10-06"
+            },
+            {
+              "provider": "anthropic",
+              "model_id": "claude-opus-5",
+              "input_per_million": 5.0,
+              "output_per_million": 25.0,
+              "long_context_threshold_tokens": null,
+              "long_context_input_per_million": null,
+              "long_context_output_per_million": null,
+              "effective_from": "2026-10-06",
+              "effective_to": null,
+              "source": "Anthropic API list price, published 2026-10-06"
+            },
+            {
+              "provider": "anthropic",
+              "model_id": "claude-opus-4-8",
+              "input_per_million": 5.0,
+              "output_per_million": 25.0,
+              "long_context_threshold_tokens": null,
+              "long_context_input_per_million": null,
+              "long_context_output_per_million": null,
+              "effective_from": "2026-10-06",
+              "effective_to": null,
+              "source": "Anthropic API list price, published 2026-10-06"
+            },
+            {
+              "provider": "anthropic",
+              "model_id": "claude-opus-4-7",
+              "input_per_million": 5.0,
+              "output_per_million": 25.0,
+              "long_context_threshold_tokens": null,
+              "long_context_input_per_million": null,
+              "long_context_output_per_million": null,
+              "effective_from": "2026-10-06",
+              "effective_to": null,
+              "source": "Anthropic API list price, published 2026-10-06"
+            },
+            {
+              "provider": "anthropic",
+              "model_id": "claude-opus-4-6",
+              "input_per_million": 5.0,
+              "output_per_million": 25.0,
+              "long_context_threshold_tokens": null,
+              "long_context_input_per_million": null,
+              "long_context_output_per_million": null,
+              "effective_from": "2026-10-06",
+              "effective_to": null,
+              "source": "Anthropic API list price, published 2026-10-06"
+            },
+            {
+              "provider": "anthropic",
+              "model_id": "claude-sonnet-5-5",
+              "input_per_million": 2.0,
+              "output_per_million": 10.0,
+              "long_context_threshold_tokens": null,
+              "long_context_input_per_million": null,
+              "long_context_output_per_million": null,
+              "effective_from": "2026-10-06",
+              "effective_to": null,
+              "source": "Anthropic API list price, published 2026-10-06"
+            },
+            {
+              "provider": "anthropic",
+              "model_id": "claude-sonnet-5",
+              "input_per_million": 2.0,
+              "output_per_million": 10.0,
+              "long_context_threshold_tokens": null,
+              "long_context_input_per_million": null,
+              "long_context_output_per_million": null,
+              "effective_from": "2026-10-06",
+              "effective_to": null,
+              "source": "Anthropic API list price, published 2026-10-06"
+            },
+            {
+              "provider": "anthropic",
+              "model_id": "claude-sonnet-4-6",
+              "input_per_million": 3.0,
+              "output_per_million": 15.0,
+              "long_context_threshold_tokens": null,
+              "long_context_input_per_million": null,
+              "long_context_output_per_million": null,
+              "effective_from": "2026-10-06",
+              "effective_to": null,
+              "source": "Anthropic API list price, published 2026-10-06"
+            },
+            {
+              "provider": "anthropic",
+              "model_id": "claude-haiku-5-5",
+              "input_per_million": 0.1,
+              "output_per_million": 0.5,
+              "long_context_threshold_tokens": 100000,
+              "long_context_input_per_million": 0.5,
+              "long_context_output_per_million": 2.5,
+              "effective_from": "2026-10-06",
+              "effective_to": null,
+              "source": "Anthropic API list price, published 2026-10-06 (higher rate above 100K prompt tokens)"
+            },
+            {
+              "provider": "anthropic",
+              "model_id": "claude-haiku-4-5",
+              "input_per_million": 1.0,
+              "output_per_million": 5.0,
+              "long_context_threshold_tokens": null,
+              "long_context_input_per_million": null,
+              "long_context_output_per_million": null,
+              "effective_from": "2026-10-06",
+              "effective_to": null,
+              "source": "Anthropic API list price, published 2026-10-06"
+            },
+            {
+              "provider": "fake",
+              "model_id": "*",
+              "input_per_million": 1.0,
+              "output_per_million": 2.0,
+              "long_context_threshold_tokens": null,
+              "long_context_input_per_million": null,
+              "long_context_output_per_million": null,
+              "effective_from": "2026-01-01",
+              "effective_to": null,
+              "source": "Illustrative rate for the fake provider; not a real price"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "summaries": [
+    {
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "case_count": 21,
+      "success_count": 21,
+      "error_count": 0,
+      "error_rate": 0.0,
+      "error_codes": {},
+      "usage": {
+        "cases_with_usage": 21,
+        "input_tokens_total": 195,
+        "output_tokens_total": 30
+      },
+      "metrics": {
+        "exact_match": {
+          "metric_version": "1.0",
+          "scored_count": 20,
+          "not_applicable_count": 1,
+          "error_count": 0,
+          "mean": 1.0,
+          "median": 1.0,
+          "p95": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "total": null,
+          "small_sample": false
+        },
+        "latency": {
+          "metric_version": "1.0",
+          "scored_count": 21,
+          "not_applicable_count": 0,
+          "error_count": 0,
+          "mean": 14.999095238095238,
+          "median": 15.939,
+          "p95": 17.472,
+          "min": 9.176,
+          "max": 17.564,
+          "total": null,
+          "small_sample": false
+        },
+        "estimated_cost": {
+          "metric_version": "1.0",
+          "scored_count": 21,
+          "not_applicable_count": 0,
+          "error_count": 0,
+          "mean": 0.000012142857142857144,
+          "median": 0.000011,
+          "p95": 0.000021,
+          "min": 7e-6,
+          "max": 0.000025,
+          "total": 0.000255,
+          "small_sample": false
+        }
+      }
+    },
+    {
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "case_count": 21,
+      "success_count": 20,
+      "error_count": 1,
+      "error_rate": 0.047619047619047616,
+      "error_codes": {
+        "rate_limited": 1
+      },
+      "usage": {
+        "cases_with_usage": 20,
+        "input_tokens_total": 188,
+        "output_tokens_total": 32
+      },
+      "metrics": {
+        "exact_match": {
+          "metric_version": "1.0",
+          "scored_count": 19,
+          "not_applicable_count": 2,
+          "error_count": 0,
+          "mean": 0.8421052631578947,
+          "median": 1.0,
+          "p95": 1.0,
+          "min": 0.0,
+          "max": 1.0,
+          "total": null,
+          "small_sample": true
+        },
+        "latency": {
+          "metric_version": "1.0",
+          "scored_count": 20,
+          "not_applicable_count": 1,
+          "error_count": 0,
+          "mean": 29.019,
+          "median": 31.4645,
+          "p95": 31.937,
+          "min": 15.535,
+          "max": 31.994,
+          "total": null,
+          "small_sample": false
+        },
+        "estimated_cost": {
+          "metric_version": "1.0",
+          "scored_count": 20,
+          "not_applicable_count": 1,
+          "error_count": 0,
+          "mean": 0.0000126,
+          "median": 0.000011,
+          "p95": 0.000021,
+          "min": 7e-6,
+          "max": 0.000026,
+          "total": 0.000252,
+          "small_sample": false
+        }
+      }
+    }
+  ],
+  "results": [
+    {
+      "case_key": "capital-france",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "geography"
+      ],
+      "input": {
+        "question": "What is the capital of France?"
+      },
+      "expected_output": "Paris",
+      "actual_output": "Paris",
+      "latency_ms": 9.176,
+      "input_tokens": 6,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.508569Z",
+      "finished_at": "2026-10-28T17:36:59.517549Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "paris",
+            "compared_actual": "paris"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 9.176,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 8e-6,
+          "status": "scored",
+          "details": {
+            "input_cost": 6e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "capital-japan",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "geography"
+      ],
+      "input": {
+        "question": "What is the capital of Japan?"
+      },
+      "expected_output": "Tokyo",
+      "actual_output": "Tokyo",
+      "latency_ms": 9.645,
+      "input_tokens": 6,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.508569Z",
+      "finished_at": "2026-10-28T17:36:59.517549Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "tokyo",
+            "compared_actual": "tokyo"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 9.645,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 8e-6,
+          "status": "scored",
+          "details": {
+            "input_cost": 6e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "capital-canada",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "geography"
+      ],
+      "input": {
+        "question": "What is the capital of Canada?"
+      },
+      "expected_output": "Ottawa",
+      "actual_output": "Ottawa",
+      "latency_ms": 9.456,
+      "input_tokens": 6,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.508569Z",
+      "finished_at": "2026-10-28T17:36:59.517549Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "ottawa",
+            "compared_actual": "ottawa"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 9.456,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 8e-6,
+          "status": "scored",
+          "details": {
+            "input_cost": 6e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "capital-australia",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "geography"
+      ],
+      "input": {
+        "question": "What is the capital of Australia?"
+      },
+      "expected_output": "Canberra",
+      "actual_output": "Canberra",
+      "latency_ms": 9.747,
+      "input_tokens": 6,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.508569Z",
+      "finished_at": "2026-10-28T17:36:59.518567Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "canberra",
+            "compared_actual": "canberra"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 9.747,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 8e-6,
+          "status": "scored",
+          "details": {
+            "input_cost": 6e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "geo-continent-egypt",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "geography"
+      ],
+      "input": {
+        "question": "On which continent is Egypt?"
+      },
+      "expected_output": "Africa",
+      "actual_output": "Africa",
+      "latency_ms": 17.095,
+      "input_tokens": 5,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.518567Z",
+      "finished_at": "2026-10-28T17:36:59.535401Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "africa",
+            "compared_actual": "africa"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 17.095,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 7e-6,
+          "status": "scored",
+          "details": {
+            "input_cost": 5e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "geo-largest-ocean",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "geography"
+      ],
+      "input": {
+        "question": "What is the largest ocean on Earth?"
+      },
+      "expected_output": "Pacific Ocean",
+      "actual_output": "Pacific Ocean",
+      "latency_ms": 17.472,
+      "input_tokens": 7,
+      "output_tokens": 2,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.518567Z",
+      "finished_at": "2026-10-28T17:36:59.535401Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "pacific ocean",
+            "compared_actual": "pacific ocean"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 17.472,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000011,
+          "status": "scored",
+          "details": {
+            "input_cost": 7e-6,
+            "output_cost": 4e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "math-add-001",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "math"
+      ],
+      "input": {
+        "question": "What is 17 + 25? Answer with a number only."
+      },
+      "expected_output": "42",
+      "actual_output": "42",
+      "latency_ms": 17.302,
+      "input_tokens": 10,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.518567Z",
+      "finished_at": "2026-10-28T17:36:59.535401Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "42",
+            "compared_actual": "42"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 17.302,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000012,
+          "status": "scored",
+          "details": {
+            "input_cost": 0.00001,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "math-mul-001",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "math"
+      ],
+      "input": {
+        "question": "What is 9 multiplied by 8? Answer with a number only."
+      },
+      "expected_output": "72",
+      "actual_output": "72",
+      "latency_ms": 17.564,
+      "input_tokens": 11,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.518567Z",
+      "finished_at": "2026-10-28T17:36:59.536400Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "72",
+            "compared_actual": "72"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 17.564,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000013,
+          "status": "scored",
+          "details": {
+            "input_cost": 0.000011,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "math-sqrt-001",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "math"
+      ],
+      "input": {
+        "question": "What is the square root of 144? Answer with a number only."
+      },
+      "expected_output": "12",
+      "actual_output": "12",
+      "latency_ms": 15.806,
+      "input_tokens": 12,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.536400Z",
+      "finished_at": "2026-10-28T17:36:59.552132Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "12",
+            "compared_actual": "12"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 15.806,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000014,
+          "status": "scored",
+          "details": {
+            "input_cost": 0.000012,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "science-water-formula",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "science"
+      ],
+      "input": {
+        "question": "What is the chemical formula for water?"
+      },
+      "expected_output": "H2O",
+      "actual_output": "H2O",
+      "latency_ms": 16.187,
+      "input_tokens": 7,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.536400Z",
+      "finished_at": "2026-10-28T17:36:59.552132Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "h2o",
+            "compared_actual": "h2o"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 16.187,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 9e-6,
+          "status": "scored",
+          "details": {
+            "input_cost": 7e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "science-largest-planet",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "science"
+      ],
+      "input": {
+        "question": "Which planet is the largest in our solar system?"
+      },
+      "expected_output": "Jupiter",
+      "actual_output": "Jupiter",
+      "latency_ms": 15.939,
+      "input_tokens": 9,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.536400Z",
+      "finished_at": "2026-10-28T17:36:59.552132Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "jupiter",
+            "compared_actual": "jupiter"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 15.939,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000011,
+          "status": "scored",
+          "details": {
+            "input_cost": 9e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "science-boiling-point",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "science"
+      ],
+      "input": {
+        "question": "At sea level, what is the boiling point of water in degrees Celsius? Answer with a number only."
+      },
+      "expected_output": "100",
+      "actual_output": "100",
+      "latency_ms": 16.239,
+      "input_tokens": 18,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.536400Z",
+      "finished_at": "2026-10-28T17:36:59.552132Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "100",
+            "compared_actual": "100"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 16.239,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.00002,
+          "status": "scored",
+          "details": {
+            "input_cost": 0.000018,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "science-gold-symbol",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "science"
+      ],
+      "input": {
+        "question": "What is the chemical symbol for gold?"
+      },
+      "expected_output": "Au",
+      "actual_output": "Au",
+      "latency_ms": 15.399,
+      "input_tokens": 7,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.552132Z",
+      "finished_at": "2026-10-28T17:36:59.568216Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "au",
+            "compared_actual": "au"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 15.399,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 9e-6,
+          "status": "scored",
+          "details": {
+            "input_cost": 7e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "lang-spanish-hello",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "language"
+      ],
+      "input": {
+        "question": "What is the Spanish word for 'hello'?"
+      },
+      "expected_output": "Hola",
+      "actual_output": "Hola",
+      "latency_ms": 15.758,
+      "input_tokens": 7,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.552132Z",
+      "finished_at": "2026-10-28T17:36:59.568216Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "hola",
+            "compared_actual": "hola"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 15.758,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 9e-6,
+          "status": "scored",
+          "details": {
+            "input_cost": 7e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "units-km-meters",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "units"
+      ],
+      "input": {
+        "question": "How many meters are in one kilometer? Answer with a number only."
+      },
+      "expected_output": "1000",
+      "actual_output": "1000",
+      "latency_ms": 15.576,
+      "input_tokens": 12,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.552132Z",
+      "finished_at": "2026-10-28T17:36:59.568216Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "1000",
+            "compared_actual": "1000"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 15.576,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000014,
+          "status": "scored",
+          "details": {
+            "input_cost": 0.000012,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "time-leap-year-days",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "units"
+      ],
+      "input": {
+        "question": "How many days are in a leap year? Answer with a number only."
+      },
+      "expected_output": "366",
+      "actual_output": "366",
+      "latency_ms": 15.844,
+      "input_tokens": 13,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.552132Z",
+      "finished_at": "2026-10-28T17:36:59.568216Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "366",
+            "compared_actual": "366"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 15.844,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000015,
+          "status": "scored",
+          "details": {
+            "input_cost": 0.000013,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "format-json-prime",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "structured-output"
+      ],
+      "input": {
+        "question": "Is 7 a prime number? Reply with JSON only, in the form {\"is_prime\": true} or {\"is_prime\": false}."
+      },
+      "expected_output": "{\"is_prime\": true}",
+      "actual_output": "{\"is_prime\": true}",
+      "latency_ms": 16.14,
+      "input_tokens": 17,
+      "output_tokens": 2,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.568216Z",
+      "finished_at": "2026-10-28T17:36:59.584659Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "is_prime\": true",
+            "compared_actual": "is_prime\": true"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 16.14,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000021,
+          "status": "scored",
+          "details": {
+            "input_cost": 0.000017,
+            "output_cost": 4e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "format-iso-date",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "structured-output"
+      ],
+      "input": {
+        "question": "Write the date 4 July 2021 in ISO 8601 format (YYYY-MM-DD)."
+      },
+      "expected_output": "2021-07-04",
+      "actual_output": "2021-07-04",
+      "latency_ms": 16.817,
+      "input_tokens": 11,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.568216Z",
+      "finished_at": "2026-10-28T17:36:59.584659Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "2021-07-04",
+            "compared_actual": "2021-07-04"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 16.817,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000013,
+          "status": "scored",
+          "details": {
+            "input_cost": 0.000011,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "cs-binary-ten",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "computing"
+      ],
+      "input": {
+        "question": "What is the decimal number 10 written in binary?"
+      },
+      "expected_output": "1010",
+      "actual_output": "1010",
+      "latency_ms": 16.457,
+      "input_tokens": 9,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.568216Z",
+      "finished_at": "2026-10-28T17:36:59.584659Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "1010",
+            "compared_actual": "1010"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 16.457,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000011,
+          "status": "scored",
+          "details": {
+            "input_cost": 9e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "cs-http-not-found",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "computing"
+      ],
+      "input": {
+        "question": "Which HTTP status code means 'Not Found'?"
+      },
+      "expected_output": "404",
+      "actual_output": "404",
+      "latency_ms": 16.84,
+      "input_tokens": 7,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.568216Z",
+      "finished_at": "2026-10-28T17:36:59.584659Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "404",
+            "compared_actual": "404"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 16.84,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 9e-6,
+          "status": "scored",
+          "details": {
+            "input_cost": 7e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "open-greeting",
+      "model_name": "fake-reference",
+      "provider": "fake",
+      "model_id": "fake-oracle-v1",
+      "status": "success",
+      "tags": [
+        "open-ended"
+      ],
+      "input": {
+        "question": "Write a one-sentence greeting for a customer support chat."
+      },
+      "expected_output": null,
+      "actual_output": "Hi there! How can I help you today?",
+      "latency_ms": 14.522,
+      "input_tokens": 9,
+      "output_tokens": 8,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.584659Z",
+      "finished_at": "2026-10-28T17:36:59.600481Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": null,
+          "status": "not_applicable",
+          "details": {
+            "reason": "case has no expected_output"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 14.522,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000025,
+          "status": "scored",
+          "details": {
+            "input_cost": 9e-6,
+            "output_cost": 0.000016,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "capital-france",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "success",
+      "tags": [
+        "geography"
+      ],
+      "input": {
+        "question": "What is the capital of France?"
+      },
+      "expected_output": "Paris",
+      "actual_output": "Paris",
+      "latency_ms": 31.422,
+      "input_tokens": 6,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.600481Z",
+      "finished_at": "2026-10-28T17:36:59.632075Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "paris",
+            "compared_actual": "paris"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 31.422,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 8e-6,
+          "status": "scored",
+          "details": {
+            "input_cost": 6e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "capital-japan",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "success",
+      "tags": [
+        "geography"
+      ],
+      "input": {
+        "question": "What is the capital of Japan?"
+      },
+      "expected_output": "Tokyo",
+      "actual_output": "Tokyo",
+      "latency_ms": 31.776,
+      "input_tokens": 6,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.600990Z",
+      "finished_at": "2026-10-28T17:36:59.632075Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "tokyo",
+            "compared_actual": "tokyo"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 31.776,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 8e-6,
+          "status": "scored",
+          "details": {
+            "input_cost": 6e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "capital-canada",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "success",
+      "tags": [
+        "geography"
+      ],
+      "input": {
+        "question": "What is the capital of Canada?"
+      },
+      "expected_output": "Ottawa",
+      "actual_output": "Ottawa",
+      "latency_ms": 31.607,
+      "input_tokens": 6,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.600990Z",
+      "finished_at": "2026-10-28T17:36:59.632075Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "ottawa",
+            "compared_actual": "ottawa"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 31.607,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 8e-6,
+          "status": "scored",
+          "details": {
+            "input_cost": 6e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "capital-australia",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "success",
+      "tags": [
+        "geography"
+      ],
+      "input": {
+        "question": "What is the capital of Australia?"
+      },
+      "expected_output": "Canberra",
+      "actual_output": "Sydney",
+      "latency_ms": 31.843,
+      "input_tokens": 6,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.600990Z",
+      "finished_at": "2026-10-28T17:36:59.632075Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 0.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "canberra",
+            "compared_actual": "sydney"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 31.843,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 8e-6,
+          "status": "scored",
+          "details": {
+            "input_cost": 6e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "geo-continent-egypt",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "success",
+      "tags": [
+        "geography"
+      ],
+      "input": {
+        "question": "On which continent is Egypt?"
+      },
+      "expected_output": "Africa",
+      "actual_output": "Africa",
+      "latency_ms": 31.467,
+      "input_tokens": 5,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.632075Z",
+      "finished_at": "2026-10-28T17:36:59.664069Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "africa",
+            "compared_actual": "africa"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 31.467,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 7e-6,
+          "status": "scored",
+          "details": {
+            "input_cost": 5e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "geo-largest-ocean",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "success",
+      "tags": [
+        "geography"
+      ],
+      "input": {
+        "question": "What is the largest ocean on Earth?"
+      },
+      "expected_output": "Pacific Ocean",
+      "actual_output": "Pacific Ocean",
+      "latency_ms": 31.937,
+      "input_tokens": 7,
+      "output_tokens": 2,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.632075Z",
+      "finished_at": "2026-10-28T17:36:59.664069Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "pacific ocean",
+            "compared_actual": "pacific ocean"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 31.937,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000011,
+          "status": "scored",
+          "details": {
+            "input_cost": 7e-6,
+            "output_cost": 4e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "math-add-001",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "success",
+      "tags": [
+        "math"
+      ],
+      "input": {
+        "question": "What is 17 + 25? Answer with a number only."
+      },
+      "expected_output": "42",
+      "actual_output": "42",
+      "latency_ms": 31.769,
+      "input_tokens": 10,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.632075Z",
+      "finished_at": "2026-10-28T17:36:59.664069Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "42",
+            "compared_actual": "42"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 31.769,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000012,
+          "status": "scored",
+          "details": {
+            "input_cost": 0.00001,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "math-mul-001",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "success",
+      "tags": [
+        "math"
+      ],
+      "input": {
+        "question": "What is 9 multiplied by 8? Answer with a number only."
+      },
+      "expected_output": "72",
+      "actual_output": "72",
+      "latency_ms": 31.994,
+      "input_tokens": 11,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.632075Z",
+      "finished_at": "2026-10-28T17:36:59.664069Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "72",
+            "compared_actual": "72"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 31.994,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000013,
+          "status": "scored",
+          "details": {
+            "input_cost": 0.000011,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "math-sqrt-001",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "success",
+      "tags": [
+        "math"
+      ],
+      "input": {
+        "question": "What is the square root of 144? Answer with a number only."
+      },
+      "expected_output": "12",
+      "actual_output": "The square root of 144 is 12.",
+      "latency_ms": 30.36,
+      "input_tokens": 12,
+      "output_tokens": 7,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.664069Z",
+      "finished_at": "2026-10-28T17:36:59.695292Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 0.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "12",
+            "compared_actual": "the square root of 144 is 12"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 30.36,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000026,
+          "status": "scored",
+          "details": {
+            "input_cost": 0.000012,
+            "output_cost": 0.000014,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "science-water-formula",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "success",
+      "tags": [
+        "science"
+      ],
+      "input": {
+        "question": "What is the chemical formula for water?"
+      },
+      "expected_output": "H2O",
+      "actual_output": "h2o.",
+      "latency_ms": 30.54,
+      "input_tokens": 7,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.664069Z",
+      "finished_at": "2026-10-28T17:36:59.695292Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "h2o",
+            "compared_actual": "h2o"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 30.54,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 9e-6,
+          "status": "scored",
+          "details": {
+            "input_cost": 7e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "science-largest-planet",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "success",
+      "tags": [
+        "science"
+      ],
+      "input": {
+        "question": "Which planet is the largest in our solar system?"
+      },
+      "expected_output": "Jupiter",
+      "actual_output": "Jupiter",
+      "latency_ms": 30.438,
+      "input_tokens": 9,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.664069Z",
+      "finished_at": "2026-10-28T17:36:59.695292Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "jupiter",
+            "compared_actual": "jupiter"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 30.438,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000011,
+          "status": "scored",
+          "details": {
+            "input_cost": 9e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "science-boiling-point",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "success",
+      "tags": [
+        "science"
+      ],
+      "input": {
+        "question": "At sea level, what is the boiling point of water in degrees Celsius? Answer with a number only."
+      },
+      "expected_output": "100",
+      "actual_output": "100",
+      "latency_ms": 30.672,
+      "input_tokens": 18,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.664069Z",
+      "finished_at": "2026-10-28T17:36:59.695800Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "100",
+            "compared_actual": "100"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 30.672,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.00002,
+          "status": "scored",
+          "details": {
+            "input_cost": 0.000018,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "science-gold-symbol",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "success",
+      "tags": [
+        "science"
+      ],
+      "input": {
+        "question": "What is the chemical symbol for gold?"
+      },
+      "expected_output": "Au",
+      "actual_output": "Au",
+      "latency_ms": 31.362,
+      "input_tokens": 7,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.695800Z",
+      "finished_at": "2026-10-28T17:36:59.727053Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "au",
+            "compared_actual": "au"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 31.362,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 9e-6,
+          "status": "scored",
+          "details": {
+            "input_cost": 7e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "lang-spanish-hello",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "success",
+      "tags": [
+        "language"
+      ],
+      "input": {
+        "question": "What is the Spanish word for 'hello'?"
+      },
+      "expected_output": "Hola",
+      "actual_output": "Hola",
+      "latency_ms": 31.601,
+      "input_tokens": 7,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.695800Z",
+      "finished_at": "2026-10-28T17:36:59.727053Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "hola",
+            "compared_actual": "hola"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 31.601,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 9e-6,
+          "status": "scored",
+          "details": {
+            "input_cost": 7e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "units-km-meters",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "success",
+      "tags": [
+        "units"
+      ],
+      "input": {
+        "question": "How many meters are in one kilometer? Answer with a number only."
+      },
+      "expected_output": "1000",
+      "actual_output": "1000",
+      "latency_ms": 31.462,
+      "input_tokens": 12,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.695800Z",
+      "finished_at": "2026-10-28T17:36:59.727053Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "1000",
+            "compared_actual": "1000"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 31.462,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000014,
+          "status": "scored",
+          "details": {
+            "input_cost": 0.000012,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "time-leap-year-days",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "success",
+      "tags": [
+        "units"
+      ],
+      "input": {
+        "question": "How many days are in a leap year? Answer with a number only."
+      },
+      "expected_output": "366",
+      "actual_output": "366",
+      "latency_ms": 31.593,
+      "input_tokens": 13,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.695800Z",
+      "finished_at": "2026-10-28T17:36:59.727053Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "366",
+            "compared_actual": "366"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 31.593,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000015,
+          "status": "scored",
+          "details": {
+            "input_cost": 0.000013,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "format-json-prime",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "success",
+      "tags": [
+        "structured-output"
+      ],
+      "input": {
+        "question": "Is 7 a prime number? Reply with JSON only, in the form {\"is_prime\": true} or {\"is_prime\": false}."
+      },
+      "expected_output": "{\"is_prime\": true}",
+      "actual_output": "{\"is_prime\": false}",
+      "latency_ms": 15.535,
+      "input_tokens": 17,
+      "output_tokens": 2,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.727053Z",
+      "finished_at": "2026-10-28T17:36:59.743144Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 0.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "is_prime\": true",
+            "compared_actual": "is_prime\": false"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 15.535,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000021,
+          "status": "scored",
+          "details": {
+            "input_cost": 0.000017,
+            "output_cost": 4e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "format-iso-date",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "success",
+      "tags": [
+        "structured-output"
+      ],
+      "input": {
+        "question": "Write the date 4 July 2021 in ISO 8601 format (YYYY-MM-DD)."
+      },
+      "expected_output": "2021-07-04",
+      "actual_output": "2021-07-04",
+      "latency_ms": 15.797,
+      "input_tokens": 11,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.727053Z",
+      "finished_at": "2026-10-28T17:36:59.743144Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "2021-07-04",
+            "compared_actual": "2021-07-04"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 15.797,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000013,
+          "status": "scored",
+          "details": {
+            "input_cost": 0.000011,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "cs-binary-ten",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "success",
+      "tags": [
+        "computing"
+      ],
+      "input": {
+        "question": "What is the decimal number 10 written in binary?"
+      },
+      "expected_output": "1010",
+      "actual_output": "1010",
+      "latency_ms": 15.67,
+      "input_tokens": 9,
+      "output_tokens": 1,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.727053Z",
+      "finished_at": "2026-10-28T17:36:59.743144Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": 1.0,
+          "status": "scored",
+          "details": {
+            "normalized": true,
+            "compared_expected": "1010",
+            "compared_actual": "1010"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 15.67,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000011,
+          "status": "scored",
+          "details": {
+            "input_cost": 9e-6,
+            "output_cost": 2e-6,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "cs-http-not-found",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "error",
+      "tags": [
+        "computing"
+      ],
+      "input": {
+        "question": "Which HTTP status code means 'Not Found'?"
+      },
+      "expected_output": "404",
+      "actual_output": null,
+      "latency_ms": 31.565,
+      "input_tokens": null,
+      "output_tokens": null,
+      "attempts": 2,
+      "error_code": "rate_limited",
+      "error_message": "simulated rate_limited from fake provider",
+      "started_at": "2026-10-28T17:36:59.727053Z",
+      "finished_at": "2026-10-28T17:36:59.885370Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": null,
+          "status": "not_applicable",
+          "details": {
+            "reason": "model call failed; see case error"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": null,
+          "status": "not_applicable",
+          "details": {
+            "reason": "model call failed; see case error"
+          }
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": null,
+          "status": "not_applicable",
+          "details": {
+            "reason": "model call failed; see case error"
+          }
+        }
+      ]
+    },
+    {
+      "case_key": "open-greeting",
+      "model_name": "fake-noisy",
+      "provider": "fake",
+      "model_id": "fake-noisy-v1",
+      "status": "success",
+      "tags": [
+        "open-ended"
+      ],
+      "input": {
+        "question": "Write a one-sentence greeting for a customer support chat."
+      },
+      "expected_output": null,
+      "actual_output": "Hello, what do you need?",
+      "latency_ms": 31.535,
+      "input_tokens": 9,
+      "output_tokens": 5,
+      "attempts": 1,
+      "error_code": null,
+      "error_message": null,
+      "started_at": "2026-10-28T17:36:59.743144Z",
+      "finished_at": "2026-10-28T17:36:59.775067Z",
+      "metrics": [
+        {
+          "metric_name": "exact_match",
+          "metric_version": "1.0",
+          "score": null,
+          "status": "not_applicable",
+          "details": {
+            "reason": "case has no expected_output"
+          }
+        },
+        {
+          "metric_name": "latency",
+          "metric_version": "1.0",
+          "score": 31.535,
+          "status": "scored",
+          "details": {}
+        },
+        {
+          "metric_name": "estimated_cost",
+          "metric_version": "1.0",
+          "score": 0.000019,
+          "status": "scored",
+          "details": {
+            "input_cost": 9e-6,
+            "output_cost": 0.00001,
+            "currency": "USD",
+            "pricing_version": "2026-10-27",
+            "price_effective_from": "2026-01-01",
+            "long_context_rate": false,
+            "is_estimate": true
+          }
+        }
+      ]
+    }
+  ],
+  "gate": {
+    "gate_name": "demo-release-gate",
+    "passed": true,
+    "baseline_run_id": null,
+    "results": [
+      {
+        "rule": "exact_match.mean >= 0.8",
+        "kind": "absolute",
+        "metric": "exact_match",
+        "aggregation": "mean",
+        "operator": "gte",
+        "threshold": 0.8,
+        "model": "fake-reference",
+        "tag": null,
+        "actual": 1.0,
+        "baseline": null,
+        "regression": null,
+        "status": "passed",
+        "reason": null
+      },
+      {
+        "rule": "exact_match.mean >= 0.8",
+        "kind": "absolute",
+        "metric": "exact_match",
+        "aggregation": "mean",
+        "operator": "gte",
+        "threshold": 0.8,
+        "model": "fake-noisy",
+        "tag": null,
+        "actual": 0.8421052631578947,
+        "baseline": null,
+        "regression": null,
+        "status": "passed",
+        "reason": null
+      },
+      {
+        "rule": "error_rate.overall <= 0.05",
+        "kind": "absolute",
+        "metric": "error_rate",
+        "aggregation": "overall",
+        "operator": "lte",
+        "threshold": 0.05,
+        "model": "fake-reference",
+        "tag": null,
+        "actual": 0.0,
+        "baseline": null,
+        "regression": null,
+        "status": "passed",
+        "reason": null
+      },
+      {
+        "rule": "error_rate.overall <= 0.05",
+        "kind": "absolute",
+        "metric": "error_rate",
+        "aggregation": "overall",
+        "operator": "lte",
+        "threshold": 0.05,
+        "model": "fake-noisy",
+        "tag": null,
+        "actual": 0.047619047619047616,
+        "baseline": null,
+        "regression": null,
+        "status": "passed",
+        "reason": null
+      },
+      {
+        "rule": "latency.p95 <= 2000",
+        "kind": "absolute",
+        "metric": "latency",
+        "aggregation": "p95",
+        "operator": "lte",
+        "threshold": 2000.0,
+        "model": "fake-reference",
+        "tag": null,
+        "actual": 17.472,
+        "baseline": null,
+        "regression": null,
+        "status": "passed",
+        "reason": null
+      },
+      {
+        "rule": "latency.p95 <= 2000",
+        "kind": "absolute",
+        "metric": "latency",
+        "aggregation": "p95",
+        "operator": "lte",
+        "threshold": 2000.0,
+        "model": "fake-noisy",
+        "tag": null,
+        "actual": 31.937,
+        "baseline": null,
+        "regression": null,
+        "status": "passed",
+        "reason": null
+      },
+      {
+        "rule": "estimated_cost.total <= 0.01",
+        "kind": "absolute",
+        "metric": "estimated_cost",
+        "aggregation": "total",
+        "operator": "lte",
+        "threshold": 0.01,
+        "model": "fake-reference",
+        "tag": null,
+        "actual": 0.000255,
+        "baseline": null,
+        "regression": null,
+        "status": "passed",
+        "reason": null
+      },
+      {
+        "rule": "estimated_cost.total <= 0.01",
+        "kind": "absolute",
+        "metric": "estimated_cost",
+        "aggregation": "total",
+        "operator": "lte",
+        "threshold": 0.01,
+        "model": "fake-noisy",
+        "tag": null,
+        "actual": 0.000252,
+        "baseline": null,
+        "regression": null,
+        "status": "passed",
+        "reason": null
+      }
+    ]
+  },
+  "comparison": null
+}

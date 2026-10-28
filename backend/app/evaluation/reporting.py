@@ -6,9 +6,14 @@ import csv
 import io
 from pathlib import Path
 
-from app.domain.runs import CaseStatus, RunReport, UsageSummary
+from app.domain.comparison import RunComparison, Verdict
+from app.domain.runs import RunReport, UsageSummary
+from app.evaluation.comparison import case_state, is_quality
 
 MAX_FAILURES_LISTED = 20
+MAX_CHANGES_LISTED = 20
+# Same default as comparisons: a quality score must reach half of its range to pass.
+DEFAULT_PASS_THRESHOLD = 0.5
 _FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
 
 
@@ -148,31 +153,118 @@ def render_markdown(report: RunReport) -> str:
                 f"{outcome.status} | {_cell(outcome.reason)} |"
             )
 
+    quality = {m.name: m for m in report.metrics if is_quality(m)}
     failures = [
-        r
-        for r in report.results
-        if r.status == CaseStatus.ERROR
-        or any(m.metric_name == "exact_match" and m.score == 0.0 for m in r.metrics)
+        (result, reasons)
+        for result in report.results
+        for state, reasons in [case_state(result, quality, DEFAULT_PASS_THRESHOLD)]
+        if state == "fail"
     ]
     lines += ["", f"## Failed cases ({len(failures)})", ""]
+    lines.append(
+        "A case fails when the model call errored or a quality metric scored below half of "
+        "its range."
+    )
+    lines.append("")
     if not failures:
         lines.append("None.")
     else:
-        lines.append("| Model | Case | Expected | Actual | Error |")
+        lines.append("| Model | Case | Expected | Actual | Why |")
         lines.append("|---|---|---|---|---|")
-        for result in failures[:MAX_FAILURES_LISTED]:
+        for result, reasons in failures[:MAX_FAILURES_LISTED]:
             lines.append(
                 f"| {result.model_name} | `{result.case_key}` | {_cell(result.expected_output)} | "
-                f"{_cell(result.actual_output)} | {_cell(result.error_code)} |"
+                f"{_cell(result.actual_output)} | {_cell('; '.join(reasons))} |"
             )
         if len(failures) > MAX_FAILURES_LISTED:
             lines.append(f"\n…and {len(failures) - MAX_FAILURES_LISTED} more in the JSON report.")
+
+    if report.comparison is not None:
+        lines += ["", *render_comparison_sections(report.comparison, heading_level=2)]
 
     lines += [
         "",
         "---",
         "Scores are only as reliable as the dataset and metric definitions. "
         "Errored cases are excluded from quality metrics and counted in the error rate.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def _signed(value: float | None) -> str:
+    if value is None:
+        return "n/a"
+    return ("+" if value > 0 else "") + _fmt(value)
+
+
+def render_comparison_sections(comparison: RunComparison, *, heading_level: int = 2) -> list[str]:
+    """Markdown sections describing regressions and improvements against a baseline."""
+    h = "#" * heading_level
+    verdict = "REGRESSED" if comparison.regressed else "no regressions"
+    lines = [
+        f"{h} Comparison with baseline: {verdict}",
+        "",
+        f"- Baseline run: `{comparison.baseline.run_id}` ({comparison.baseline.dataset_name})",
+        f"- Candidate run: `{comparison.candidate.run_id}` ({comparison.candidate.dataset_name})",
+        f"- Same dataset content: {'yes' if comparison.same_dataset else 'no'}",
+        f"- Newly failing cases: {comparison.newly_failing_count} · "
+        f"recovered: {comparison.recovered_count}",
+    ]
+    for warning in comparison.warnings:
+        lines.append(f"- Warning: {warning}")
+    for name, reason in comparison.excluded_metrics.items():
+        lines.append(f"- Not compared: `{name}` ({reason})")
+
+    for model in comparison.models:
+        pair = (
+            model.candidate_model
+            if model.baseline_model == model.candidate_model
+            else f"{model.baseline_model} → {model.candidate_model}"
+        )
+        lines += [
+            "",
+            f"{h}# {pair} ({model.cases_compared} aligned cases)",
+            "",
+            "| Metric | Baseline | Candidate | Delta | Verdict |",
+            "|---|---|---|---|---|",
+        ]
+        for delta in [model.error_rate, *model.metrics]:
+            mark = " ⚠" if delta.verdict == Verdict.REGRESSED else ""
+            lines.append(
+                f"| {delta.metric} {delta.aggregation} | {_fmt(delta.baseline)} | "
+                f"{_fmt(delta.candidate)} | {_signed(delta.delta)} | {delta.verdict}{mark} |"
+            )
+        if model.newly_failing:
+            lines += ["", f"Newly failing ({len(model.newly_failing)}):", ""]
+            for change in model.newly_failing[:MAX_CHANGES_LISTED]:
+                why = "; ".join(change.candidate_reasons)
+                lines.append(f"- `{change.case_key}`: {_cell(why, 120)}")
+        if model.recovered:
+            lines += ["", f"Recovered ({len(model.recovered)}):", ""]
+            for change in model.recovered[:MAX_CHANGES_LISTED]:
+                lines.append(f"- `{change.case_key}`")
+        regressions = [c for c in model.score_changes if c.verdict == "regressed"]
+        if regressions:
+            lines += ["", "Largest score drops:", ""]
+            for drop in regressions[:MAX_CHANGES_LISTED]:
+                lines.append(
+                    f"- `{drop.case_key}` {drop.metric}: {_fmt(drop.baseline)} → "
+                    f"{_fmt(drop.candidate)}"
+                )
+    return lines
+
+
+def render_comparison_markdown(comparison: RunComparison) -> str:
+    lines = [
+        f"# Run comparison: {comparison.candidate.project}",
+        "",
+        *render_comparison_sections(comparison, heading_level=2),
+        "",
+        "---",
+        "Cases are aligned by case_key; only metrics with the same version and configuration "
+        "in both runs are compared. Latency and cost deltas are informational; gate on them "
+        "with relative rules.",
         "",
     ]
     return "\n".join(lines)

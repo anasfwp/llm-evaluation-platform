@@ -10,6 +10,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from app.domain.comparison import RunComparison
 from app.domain.gates import GateResult
 from app.domain.metrics import MetricInfo, MetricResult
 from app.domain.models import ModelConfigSnapshot
@@ -183,3 +184,5 @@ class RunReport(BaseModel):
     summaries: list[ModelSummary]
     results: list[CaseResult]
     gate: GateResult | None = None
+    # Present when the run was compared with a baseline (CLI ``run --baseline``).
+    comparison: RunComparison | None = None

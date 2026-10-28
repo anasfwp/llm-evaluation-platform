@@ -190,18 +190,62 @@ labelled `usage_method: whitespace_approximation` in `raw_metadata`.
 
 ## Gates
 
-A gate rule is `metric` + `aggregation` + `operator` + `threshold`,
-optionally scoped to one `model`. It is evaluated per model.
+A gate rule is evaluated per model (optionally scoped to one `model` and/or
+the cases carrying a `tag`). There are two kinds:
+
+**Absolute** (`kind: absolute`, the default): `metric` + `aggregation` +
+`operator` + `threshold`.
+
+```yaml
+- {metric: exact_match, aggregation: mean, operator: gte, threshold: 0.8}
+- {metric: exact_match, aggregation: mean, operator: gte, threshold: 1.0, tag: geography}
+```
+
+**Relative** (`kind: relative`): compares with the same-named model of a
+baseline run (or `baseline_model`). `max_regression` is the largest allowed
+change in the *worse* direction, which follows the metric's direction
+(lower is better for latency, cost and `error_rate`).
+`regression_unit: absolute` (default) uses the metric's units;
+`percent` divides by the baseline value (any worsening from a baseline of 0
+is an infinite percentage).
+
+```yaml
+- {metric: exact_match, aggregation: mean, kind: relative, max_regression: 0.02}
+- {metric: latency, aggregation: p95, kind: relative, max_regression: 20, regression_unit: percent}
+```
 
 - Aggregations: `mean`, `median`, `p95`, `min`, `max`, `total`
-  (additive metrics only, e.g. a run cost budget), `count` (scored count). `error_rate` only supports `overall`.
+  (additive metrics only, e.g. a run cost budget), `count` (scored count).
+  `error_rate` only supports `overall`.
 - Operators: `gte`, `gt`, `lte`, `lt`, `eq`.
-- **Missing metrics never pass silently.** If a metric was not computed,
-  or has no scored cases, `missing_metric_policy` decides: `fail`
-  (default), `skip`, or `warn`. The policy can be overridden per rule.
+- Tag-scoped rules recompute the statistics over the tagged cases only.
+- **Missing values never pass silently.** A metric that was not computed or
+  has no scored cases, a relative rule without a baseline, a metric whose
+  version differs from the baseline's, or a tag with no cases is decided by
+  `missing_metric_policy`: `fail` (default), `skip`, or `warn`, overridable
+  per rule.
 
-Baseline-relative regression thresholds arrive with run comparisons in
-Phase 5.
+## Comparisons
+
+`llm-eval compare` and `POST /api/v1/comparisons` align cases by
+`case_key` and models by name (or explicit pairs). Only metrics with the
+same version **and** configuration in both runs are compared; others are
+listed in `excluded_metrics`. Aggregates are recomputed over the aligned
+cases only.
+
+A case **passes** when the model call succeeded and every scored quality
+metric (answer or retrieval quality with a bounded range) reaches
+`pass_threshold` (default 0.5) of its range after accounting for direction:
+`exact_match` needs 1, `token_f1` ≥ 0.5, a 1–5 judge score ≥ 3. It
+**fails** on an errored call or any quality score below the threshold, and
+is **unknown** when nothing comparable was scored (e.g. open-ended cases).
+*Newly failing* = not failing before, failing now; *recovered* = failing
+before, passing now. The same rule picks the "Failed cases" list in run
+reports.
+
+A comparison is `regressed` when a case newly fails, the error rate rises,
+or a quality metric's mean drops. Latency and cost deltas are reported but
+do not set `regressed`; gate on them with relative rules.
 
 ## Planned metrics
 
