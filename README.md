@@ -8,7 +8,9 @@ inspect failures, and enforce quality gates in CI.
 > **Project status:** In development. Phase 1 (deterministic evaluation
 > core + CLI), Phase 2 (REST API, PostgreSQL persistence, migrations,
 > background worker) and Phase 3 (Anthropic, OpenAI and OpenAI-compatible
-> providers, token usage, estimated cost) are implemented and tested. Everything else below is
+> providers, token usage, estimated cost) and Phase 4 (LLM-as-judge with versioned
+> rubrics, retrieval Precision@k / Recall@k / reciprocal rank, token F1) are implemented
+> and tested. Everything else below is
 > planned. The API has **no authentication yet**: run it on localhost only.
 > Do not treat illustrative sample scores or costs as real benchmark
 > results.
@@ -24,9 +26,14 @@ inspect failures, and enforce quality gates in CI.
     can simulate wrong answers and provider errors.
 -   Engine with bounded concurrency, timeouts, retries for transient
     errors only, and partial-failure handling.
--   Metrics: `exact_match` v1.0, `latency` v1.0 (mean, median, p95,
-    min, max) and `estimated_cost` v1.0 (per case and run total, from a
-    versioned pricing table frozen into each run). See
+-   Metrics: `exact_match`, `token_f1`, `latency` (mean, median, p95,
+    min, max), `estimated_cost` (per case and run total, from a
+    versioned pricing table frozen into each run), retrieval
+    `retrieval_precision_at_k` / `retrieval_recall_at_k` /
+    `reciprocal_rank` (explicit relevance labels required), and
+    LLM-as-judge `llm_judge_correctness` / `relevance` /
+    `instruction_adherence` / `groundedness` / `context_relevance` on
+    versioned 1-5 rubrics, with a deterministic fake judge for CI. See
     [`docs/metrics.md`](docs/metrics.md).
 -   Provider adapters: `anthropic` (official SDK), `openai`, and
     `openai_compatible` (any Chat Completions server), with token usage,

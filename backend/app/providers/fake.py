@@ -11,6 +11,11 @@ Behaviour is fully determined by the model parameters:
   model a weaker model or provider failures.
 - ``latency_ms`` adds a real ``asyncio.sleep`` so latency metrics have
   something to measure.
+- ``mode: judge`` acts as a deterministic LLM judge for the ``llm_judge_*``
+  metrics: it answers with a JSON verdict whose score is a crude lexical
+  heuristic (the share of the judged text's words found in the evidence, or
+  "non-empty" when there is no evidence). It shows how the pipeline works; it
+  is not a quality signal.
 
 Token counts are a whitespace approximation and are labelled as such.
 """
@@ -18,6 +23,8 @@ Token counts are a whitespace approximation and are labelled as such.
 from __future__ import annotations
 
 import asyncio
+import json
+import re
 from typing import Any, ClassVar, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -48,7 +55,7 @@ class FakeOverride(BaseModel):
 class FakeParameters(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    mode: Literal["expected", "echo_input", "constant"] = "expected"
+    mode: Literal["expected", "echo_input", "constant", "judge"] = "expected"
     constant_output: str = ""
     latency_ms: float = Field(default=0, ge=0, le=60_000)
     overrides: dict[str, FakeOverride] = Field(default_factory=dict)
@@ -86,6 +93,8 @@ class FakeProvider(BaseProvider):
             output = override.output
         elif self._params.mode == "expected":
             output = self._expected.get(request.case_key) or ""
+        elif self._params.mode == "judge":
+            output = _fake_verdict(request.input_data)
         elif self._params.mode == "echo_input":
             output = " ".join(_string_values(request.input_data))
         else:
@@ -101,6 +110,23 @@ class FakeProvider(BaseProvider):
             finish_reason="stop",
             raw_metadata={"mode": self._params.mode, "usage_method": "whitespace_approximation"},
         )
+
+
+_WORD = re.compile(r"\w+")
+
+
+def _fake_verdict(input_data: dict[str, Any]) -> str:
+    subject = set(_WORD.findall(str(input_data.get("judge_subject", "")).casefold()))
+    evidence = set(_WORD.findall(str(input_data.get("judge_evidence", "")).casefold()))
+    if not subject:
+        score, rationale = 1, "fake judge: nothing to judge"
+    elif not evidence:
+        score, rationale = 5, "fake judge: non-empty and no evidence to check against"
+    else:
+        support = len(subject & evidence) / len(subject)
+        score = 1 + round(4 * support)
+        rationale = f"fake judge: {support:.0%} of words found in the evidence"
+    return json.dumps({"score": score, "rationale": rationale})
 
 
 def _string_values(data: Any) -> list[str]:

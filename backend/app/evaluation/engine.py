@@ -64,17 +64,21 @@ async def run_evaluation(
 
     per_model: list[list[CaseResult]] = []
     cancelled = False
-    for model in plan.config.models:
-        limit = asyncio.Semaphore(model.max_concurrency or plan.config.run.max_concurrency)
-        adapter = plan.adapters[model.name]
-        tasks = [_evaluate_case(plan, adapter, model, case, limit, hooks) for case in cases]
-        try:
-            # gather preserves order, so results follow dataset order.
-            outcomes = await asyncio.gather(*tasks)
-        finally:
-            await _close(adapter)
-        cancelled = cancelled or any(outcome is None for outcome in outcomes)
-        per_model.append([outcome for outcome in outcomes if outcome is not None])
+    try:
+        for model in plan.config.models:
+            limit = asyncio.Semaphore(model.max_concurrency or plan.config.run.max_concurrency)
+            adapter = plan.adapters[model.name]
+            tasks = [_evaluate_case(plan, adapter, model, case, limit, hooks) for case in cases]
+            try:
+                # gather preserves order, so results follow dataset order.
+                outcomes = await asyncio.gather(*tasks)
+            finally:
+                await _close(adapter)
+            cancelled = cancelled or any(outcome is None for outcome in outcomes)
+            per_model.append([outcome for outcome in outcomes if outcome is not None])
+    finally:
+        for metric in plan.metrics:
+            await _close(metric)
 
     summaries = [
         summarize_model(model, results, plan.metrics)
@@ -120,7 +124,7 @@ async def _evaluate_case(
 
     if response is not None:
         metric_input = MetricInput(case=case, response=response, latency_ms=latency_ms)
-        metric_results = [_score(metric, metric_input) for metric in plan.metrics]
+        metric_results = [await _score(metric, metric_input) for metric in plan.metrics]
     else:
         # No output to score: metrics are not applicable, and the failure is counted
         # in the model's error_rate instead of being folded into quality scores.
@@ -191,19 +195,19 @@ async def _call_with_retries(
     raise AssertionError("unreachable")  # pragma: no cover
 
 
-async def _close(adapter: ModelAdapter) -> None:
-    close = getattr(adapter, "aclose", None)
+async def _close(resource: ModelAdapter | Metric) -> None:
+    close = getattr(resource, "aclose", None)
     if close is None:
         return
     try:
         await close()
     except Exception:  # cleanup failures must never change a run's outcome
-        logger.warning("could not close adapter", exc_info=True)
+        logger.warning("could not close %s", type(resource).__name__, exc_info=True)
 
 
-def _score(metric: Metric, data: MetricInput) -> MetricResult:
+async def _score(metric: Metric, data: MetricInput) -> MetricResult:
     try:
-        return metric.evaluate(data)
+        return await metric.evaluate_async(data)
     except Exception as exc:  # one broken metric must not lose the case result
         return MetricResult(
             metric_name=metric.name,

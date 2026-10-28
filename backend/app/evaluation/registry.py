@@ -10,9 +10,26 @@ from app.evaluation.metrics.base import Metric
 from app.evaluation.metrics.estimated_cost import EstimatedCost
 from app.evaluation.metrics.exact_match import ExactMatch
 from app.evaluation.metrics.latency import Latency
+from app.evaluation.metrics.llm_judge import JUDGE_METRICS
+from app.evaluation.metrics.retrieval import (
+    ReciprocalRank,
+    RetrievalPrecisionAtK,
+    RetrievalRecallAtK,
+)
+from app.evaluation.metrics.text_similarity import TokenF1
 from app.evaluation.pricing import default_pricing
 
-METRICS: dict[str, type[Metric]] = {cls.name: cls for cls in (ExactMatch, Latency, EstimatedCost)}
+_IMPLEMENTED: tuple[type[Metric], ...] = (
+    ExactMatch,
+    TokenF1,
+    Latency,
+    EstimatedCost,
+    RetrievalPrecisionAtK,
+    RetrievalRecallAtK,
+    ReciprocalRank,
+    *JUDGE_METRICS,
+)
+METRICS: dict[str, type[Metric]] = {cls.name: cls for cls in _IMPLEMENTED}
 
 
 def build_metric(name: str, version: str | None, config: Mapping[str, Any]) -> Metric:

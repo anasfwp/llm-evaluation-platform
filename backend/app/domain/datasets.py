@@ -12,10 +12,11 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 from app.core.errors import InputValidationError, Issue, issues_from_validation_error
 
 DATASET_SCHEMA_VERSION = "1.0"
+_OPTIONAL_LATER_FIELDS = ("relevant_document_ids",)
 
 
 class RetrievedContext(BaseModel):
-    """A context chunk the application retrieved for a case (used by RAG metrics later)."""
+    """A context chunk retrieved for a case, in rank order (used by retrieval and RAG metrics)."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -33,6 +34,9 @@ class EvaluationCase(BaseModel):
     expected_output: str | None = None
     reference_context: str | None = None
     retrieved_contexts: list[RetrievedContext] = Field(default_factory=list)
+    # Ground-truth relevance labels for retrieval metrics. ``None`` means "not labelled",
+    # which makes retrieval metrics not applicable; it is never read as "nothing relevant".
+    relevant_document_ids: list[str] | None = Field(default=None, max_length=1000)
     tags: list[str] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -59,9 +63,14 @@ class Dataset(BaseModel):
 
     def content_hash(self) -> str:
         """Hash of the canonical dataset content, recorded in reports for reproducibility."""
-        canonical = json.dumps(
-            self.model_dump(mode="json"), sort_keys=True, separators=(",", ":"), ensure_ascii=False
-        )
+        content = self.model_dump(mode="json")
+        for case in content["cases"]:
+            # Optional fields added after schema 1.0 shipped are left out while unset, so
+            # datasets that do not use them keep the hash they had before the field existed.
+            for field in _OPTIONAL_LATER_FIELDS:
+                if case.get(field) is None:
+                    case.pop(field, None)
+        canonical = json.dumps(content, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
         return "sha256:" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 

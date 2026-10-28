@@ -71,6 +71,85 @@ cases that got an answer, so gate on `error_rate` as well (see
   billed as output and are included in `output_tokens`. Not billing data.
   The fake provider's rates are illustrative.
 
+### `token_f1` v1.0 — answer quality, higher is better, range [0, 1]
+
+- **Requires:** `expected_output` and a model output.
+- **Score:** F1 of token precision and recall over the multisets of word
+  tokens (`\w+`) of the normalized texts (same normalization as
+  `exact_match`; punctuation always separates tokens). Both empty → 1.0,
+  one empty → 0.0. No English article removal.
+- **Details:** `precision`, `recall`.
+- **Limitation:** lexical only. Paraphrases score low; a wrong answer that
+  reuses the question's words can score high.
+
+### Retrieval metrics — retrieval quality, higher is better, range [0, 1]
+
+They need the case's ranked `retrieved_contexts` (by `document_id`) **and**
+explicit relevance labels in `relevant_document_ids`. Without labels they
+are `not_applicable`; text is never used to guess relevance. Duplicate IDs
+in the ranking count once, at their best rank.
+
+- **`retrieval_precision_at_k` v1.0** (config `k`, default 5):
+  `|relevant ∩ top_k| / |top_k|` with `|top_k| = min(k, retrieved)`.
+  Not applicable when nothing was retrieved.
+- **`retrieval_recall_at_k` v1.0** (config `k`, default 5):
+  `|relevant ∩ top_k| / |relevant|`; 0.0 when nothing was retrieved.
+  Not applicable when the label list is empty (undefined).
+- **`reciprocal_rank` v1.0** (optional `k`): `1 / rank` of the first
+  relevant document, 0.0 if none; the mean over cases is the MRR.
+
+`relevant_document_ids: []` means "labelled, nothing is relevant";
+omitting the field means "not labelled". Datasets that do not use the field
+keep the content hash they had before it existed.
+
+### LLM-as-judge — `llm_judge_*` v1.0, higher is better, range [1, 5]
+
+A judge model grades one criterion on a versioned 1–5 rubric
+(`backend/app/evaluation/rubrics.py`) and must answer with
+`{"score": <1-5>, "rationale": "..."}`.
+
+| Metric | Rubric | Needs | Category |
+|---|---|---|---|
+| `llm_judge_correctness` | correctness v1.0 | `expected_output` | answer quality |
+| `llm_judge_relevance` | relevance v1.0 | input | answer quality |
+| `llm_judge_instruction_adherence` | instruction_adherence v1.0 | input | answer quality |
+| `llm_judge_groundedness` (RAG faithfulness) | groundedness v1.0 | `reference_context` or `retrieved_contexts` text | answer quality |
+| `llm_judge_context_relevance` | context_relevance v1.0 | context text | retrieval quality |
+
+Config (every judge metric):
+
+```yaml
+- name: llm_judge_correctness
+  config:
+    judge:
+      provider: anthropic          # any registered provider
+      model_id: claude-haiku-5-5
+      parameters: {max_tokens: 1000}   # system_prompt/prompt_template are reserved
+      secret_reference: ANTHROPIC_API_KEY   # optional; must be allowlisted in the API
+      timeout_seconds: 60
+      max_concurrency: 2
+      max_retries: 1               # transient errors only
+      max_calls: 500               # optional spend guard per run, retries included
+```
+
+- **Details per case:** `rationale`, `criterion`, `rubric_version`,
+  `judge_provider`, `judge_model_id`, `judge_input_tokens`,
+  `judge_output_tokens`, `judge_attempts`, `scale: "1-5"`.
+- **Errors, never guessed scores:** provider failures (`error_code` =
+  the provider error category), output that is not a JSON object with an
+  integer score 1–5 (`unparseable_judge_output`, with a redacted excerpt),
+  and an exhausted call budget (`budget_exhausted`) are `error` results.
+- **Deterministic judge for tests/CI:** `provider: fake` with
+  `parameters: {mode: judge}` scores by a crude lexical heuristic (share
+  of the judged text's words found in the evidence). It demonstrates the
+  pipeline; it is not a quality signal.
+- **Limitations:** judge scores are estimates. Judges can favour long or
+  confident answers or their own model family, and vary between calls.
+  Answers are fenced in tags and the judge is told to ignore instructions
+  inside them, which reduces but does not remove prompt injection. Judge
+  calls cost money and are not included in `estimated_cost`. Spot-check
+  judge results by hand.
+
 ## Aggregation
 
 For each model and metric, over `scored` results only:
@@ -107,7 +186,5 @@ Phase 5.
 
 ## Planned metrics
 
-Text similarity, LLM-as-judge
-(versioned rubric), retrieval Precision@k / Recall@k / reciprocal rank
-(explicit relevance labels required), and RAG faithfulness. See the
-roadmap in `README.md`.
+Embedding-based semantic similarity (FR-060) and composite weighted scores
+(FR-061). See the roadmap in `README.md`.

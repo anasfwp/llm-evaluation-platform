@@ -1,4 +1,10 @@
-"""Metric contract. A metric owns exactly one documented scoring rule."""
+"""Metric contract. A metric owns exactly one documented scoring rule.
+
+Most metrics are pure functions of one case and implement ``evaluate``. Metrics
+that call a model (LLM judges, embeddings) subclass ``AsyncMetric`` and
+implement ``evaluate_async``; the engine always awaits ``evaluate_async`` and
+calls ``aclose`` once the run is over.
+"""
 
 from __future__ import annotations
 
@@ -52,6 +58,19 @@ class Metric(ABC):
     @abstractmethod
     def evaluate(self, data: MetricInput) -> MetricResult: ...
 
+    async def evaluate_async(self, data: MetricInput) -> MetricResult:
+        return self.evaluate(data)
+
+    async def aclose(self) -> None:  # noqa: B027 - optional hook, no-op by default
+        """Release network resources held by the metric."""
+
+    def env_references(self) -> dict[str, str]:
+        """Environment variables this metric's configuration would read, keyed by location.
+
+        Checked against the operator allowlist by the API, exactly like model configurations.
+        """
+        return {}
+
     @classmethod
     def describe(cls) -> MetricInfo:
         return MetricInfo(
@@ -85,3 +104,22 @@ class Metric(ABC):
             status=MetricStatus.NOT_APPLICABLE,
             details={"reason": reason},
         )
+
+    def error(self, error_code: str, message: str, **details: Any) -> MetricResult:
+        return MetricResult(
+            metric_name=self.name,
+            metric_version=self.version,
+            score=None,
+            status=MetricStatus.ERROR,
+            details={"error_code": error_code, "error": message, **details},
+        )
+
+
+class AsyncMetric(Metric):
+    """A metric whose scoring needs I/O, such as a call to a judge or embedding model."""
+
+    def evaluate(self, data: MetricInput) -> MetricResult:
+        raise TypeError(f"metric '{self.name}' must be awaited via evaluate_async")
+
+    @abstractmethod
+    async def evaluate_async(self, data: MetricInput) -> MetricResult: ...

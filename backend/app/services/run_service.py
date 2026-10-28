@@ -60,14 +60,25 @@ def get_run(session: Session, run_id: uuid.UUID) -> EvaluationRun:
     return run
 
 
-def _build_metrics(data: RunCreate) -> list[Metric]:
+def _build_metrics(data: RunCreate, allowed_env: frozenset[str]) -> list[Metric]:
     metrics: list[Metric] = []
     issues: list[Issue] = []
     for index, selection in enumerate(data.metrics):
         try:
-            metrics.append(build_metric(selection.name, selection.version, selection.config))
+            metric = build_metric(selection.name, selection.version, selection.config)
         except ValueError as exc:  # includes pydantic ValidationError for metric config
             issues.append(Issue(f"metrics[{index}]", str(exc).splitlines()[0]))
+            continue
+        # Judge metrics call providers too, so they get the same allowlist check as models.
+        issues.extend(
+            Issue(
+                f"metrics[{index}].config.{location}",
+                f"environment variable '{name}' is not in PROVIDER_ENV_ALLOWLIST",
+            )
+            for location, name in metric.env_references().items()
+            if name not in allowed_env
+        )
+        metrics.append(metric)
     if issues:
         raise InvalidRequestError("invalid metric selection", issues)
     return metrics
@@ -121,7 +132,7 @@ def start_run(
             model.provider, model.parameters_json, model.secret_reference, allowed_env
         )
 
-    metrics = _build_metrics(data)
+    metrics = _build_metrics(data, allowed_env)
     config = EvalConfig(
         project=project.name,
         dataset=f"{dataset.name}@v{version.version_number}",

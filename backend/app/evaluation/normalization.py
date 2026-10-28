@@ -3,7 +3,10 @@ so any change here requires bumping the versions of the metrics that use it."""
 
 from __future__ import annotations
 
+import re
 import unicodedata
+
+_WORD = re.compile(r"\w+")
 
 
 def _is_punctuation(char: str) -> bool:
@@ -24,3 +27,12 @@ def normalize_text(text: str) -> str:
     while end > start and (_is_punctuation(normalized[end - 1]) or normalized[end - 1].isspace()):
         end -= 1
     return normalized[start:end]
+
+
+def tokenize(text: str) -> list[str]:
+    """Word tokens of the normalized text: runs of Unicode letters, digits, and underscores.
+
+    Punctuation, including internal punctuation, separates tokens here, so ``"h2o."``
+    and ``"H2O"`` produce the same tokens.
+    """
+    return _WORD.findall(normalize_text(text))

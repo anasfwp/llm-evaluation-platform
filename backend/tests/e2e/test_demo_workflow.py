@@ -125,7 +125,8 @@ def test_model_with_every_case_failing_exits_3(tmp_path: Path) -> None:
 def test_metrics_list_and_version(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["metrics", "list", "--json"]) == EXIT_OK
     names = [m["name"] for m in json.loads(capsys.readouterr().out)]
-    assert names == ["exact_match", "latency", "estimated_cost"]
+    assert names[:4] == ["exact_match", "token_f1", "latency", "estimated_cost"]
+    assert {"retrieval_recall_at_k", "reciprocal_rank", "llm_judge_correctness"} <= set(names)
     with pytest.raises(SystemExit) as info:
         main(["--version"])
     assert info.value.code == 0

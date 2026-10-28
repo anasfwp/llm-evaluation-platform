@@ -49,6 +49,7 @@ def add_version(session: Session, dataset: Dataset, content: domain.Dataset) -> 
             expected_output=case.expected_output,
             reference_context=case.reference_context,
             retrieved_contexts_json=[c.model_dump(mode="json") for c in case.retrieved_contexts],
+            relevant_document_ids_json=case.relevant_document_ids,
             tags_json=case.tags,
             metadata_json=case.metadata,
         )
@@ -111,6 +112,7 @@ def to_domain_case(row: EvaluationCase) -> domain.EvaluationCase:
         expected_output=row.expected_output,
         reference_context=row.reference_context,
         retrieved_contexts=[domain.RetrievedContext(**c) for c in row.retrieved_contexts_json],
+        relevant_document_ids=row.relevant_document_ids_json,
         tags=row.tags_json,
         metadata=row.metadata_json,
     )

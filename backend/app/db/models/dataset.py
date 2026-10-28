@@ -50,5 +50,7 @@ class EvaluationCase(UUIDPrimaryKey, Base):
     expected_output: Mapped[str | None] = mapped_column(Text)
     reference_context: Mapped[str | None] = mapped_column(Text)
     retrieved_contexts_json: Mapped[list[dict[str, Any]]] = mapped_column(JSONType, default=list)
+    # NULL = not labelled (retrieval metrics not applicable), [] = labelled, nothing relevant.
+    relevant_document_ids_json: Mapped[list[str] | None] = mapped_column(JSONType)
     tags_json: Mapped[list[str]] = mapped_column(JSONType, default=list)
     metadata_json: Mapped[dict[str, Any]] = mapped_column(default=dict)

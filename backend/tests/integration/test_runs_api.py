@@ -288,3 +288,36 @@ def test_run_rechecks_env_allowlist(
     response = _start(client, dataset, [model])
     assert response.status_code == 422
     assert "ANTHROPIC_API_KEY" in response.text
+
+
+def test_judge_metric_runs_and_disallowed_judge_env_is_rejected(
+    client: TestClient, dataset: JsonDict, make_model: ModelFactory
+) -> None:
+    model = make_model("reference")
+    fake_judge = {
+        "name": "llm_judge_correctness",
+        "config": {
+            "judge": {"provider": "fake", "model_id": "fake-judge", "parameters": {"mode": "judge"}}
+        },
+    }
+    accepted = _start(client, dataset, [model], metrics=[fake_judge])
+    assert accepted.status_code == 202, accepted.text
+    run = client.get(f"/api/v1/runs/{accepted.json()['run_id']}").json()
+    stats = run["models"][0]["metrics"]["llm_judge_correctness"]
+    assert stats["mean"] == 5.0
+    assert stats["not_applicable_count"] == 1  # the open-ended case has no reference
+
+    sneaky = {
+        "name": "llm_judge_correctness",
+        "config": {
+            "judge": {
+                "provider": "anthropic",
+                "model_id": "claude-haiku-5-5",
+                "secret_reference": "DATABASE_URL",
+            }
+        },
+    }
+    rejected = _start(client, dataset, [model], metrics=[sneaky])
+    assert rejected.status_code == 422
+    fields = [d["field"] for d in rejected.json()["error"]["details"]]
+    assert fields == ["metrics[0].config.judge.secret_reference"]

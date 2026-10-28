@@ -92,16 +92,7 @@ class OpenAICompatibleProvider(BaseProvider):
     ) -> tuple[str | None, ProviderError | None]:
         if cls.fixed_base_url is not None:
             return cls.fixed_base_url, None
-        env_name = getattr(params, "base_url_env", DEFAULT_BASE_URL_ENV)
-        raw = read_env(env_name)
-        if raw is None:
-            return None, _config_error(f"base URL is not configured: set {env_name}")
-        parts = urlsplit(raw.strip())
-        if parts.scheme not in ("http", "https") or not parts.netloc:
-            return None, _config_error(f"{env_name} must be an http(s) URL")
-        if parts.username or parts.password:
-            return None, _config_error(f"{env_name} must not contain credentials")
-        return raw.strip().rstrip("/"), None
+        return resolve_base_url(getattr(params, "base_url_env", DEFAULT_BASE_URL_ENV))
 
     @classmethod
     def env_references(
@@ -142,7 +133,7 @@ class OpenAICompatibleProvider(BaseProvider):
             ) from None
 
         if response.status_code >= 400:
-            raise _status_error(response)
+            raise status_error(response)
         if response.status_code >= 300:
             raise ProviderError(
                 ProviderErrorCategory.INVALID_REQUEST,
@@ -211,7 +202,20 @@ def _config_error(message: str) -> ProviderError:
     return ProviderError(ProviderErrorCategory.INVALID_REQUEST, message)
 
 
-def _status_error(response: httpx.Response) -> ProviderError:
+def resolve_base_url(env_name: str) -> tuple[str | None, ProviderError | None]:
+    """Read and validate a base URL from the named environment variable."""
+    raw = read_env(env_name)
+    if raw is None:
+        return None, _config_error(f"base URL is not configured: set {env_name}")
+    parts = urlsplit(raw.strip())
+    if parts.scheme not in ("http", "https") or not parts.netloc:
+        return None, _config_error(f"{env_name} must be an http(s) URL")
+    if parts.username or parts.password:
+        return None, _config_error(f"{env_name} must not contain credentials")
+    return raw.strip().rstrip("/"), None
+
+
+def status_error(response: httpx.Response) -> ProviderError:
     detail = ""
     retry_after = parse_retry_after(response.headers.get("retry-after"))
     try:
