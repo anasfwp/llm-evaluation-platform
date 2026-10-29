@@ -1,0 +1,52 @@
+# RAG demo: retrieval metrics over recorded retriever rankings, answer overlap, and a
+# groundedness judge. Fake provider and fake judge only: no credentials or network.
+#   uv run llm-eval run --config evals/demo_rag_config.yaml --gates evals/gates.rag.yaml
+schema_version: "1.0"
+project: demo-rag
+dataset: ../datasets/demo_rag.json
+
+models:
+  # Answers from the handbook: every claim is supported by the retrieved context.
+  - name: fake-grounded
+    provider: fake
+    model_id: fake-grounded-v1
+    parameters:
+      mode: expected
+      latency_ms: 8
+      overrides:
+        unlabelled-summary: {output: "Unused items can be returned within 30 days of delivery for a full refund."}
+
+  # Makes things up on two cases: answers that the context does not support.
+  - name: fake-hallucinating
+    provider: fake
+    model_id: fake-hallucinating-v1
+    parameters:
+      mode: expected
+      latency_ms: 12
+      overrides:
+        returns-window: {output: "Customers get 90 days and free return labels with every order."}
+        international-shipping: {output: "Only within Europe, with free customs clearance."}
+        unlabelled-summary: {output: "Returns are accepted any time, no questions asked, with store credit."}
+
+metrics:
+  - name: token_f1
+  # Retrieval quality of the recorded rankings (identical for both models).
+  - name: retrieval_precision_at_k
+    config: {k: 3}
+  - name: retrieval_recall_at_k
+    config: {k: 3}
+  - name: reciprocal_rank
+  # The fake judge scores how many of the answer's words appear in the context.
+  # Swap in a real judge model to get a meaningful (still estimated) rating.
+  - name: llm_judge_groundedness
+    config:
+      judge:
+        provider: fake
+        model_id: fake-judge-v1
+        parameters: {mode: judge}
+  - name: latency
+
+run:
+  timeout_seconds: 10
+  max_concurrency: 4
+  max_retries: 0

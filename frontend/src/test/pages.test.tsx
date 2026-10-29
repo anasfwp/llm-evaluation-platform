@@ -20,7 +20,7 @@ function mockApi(routes: Routes) {
 
 function renderAt(path: string) {
   return render(
-    <MemoryRouter initialEntries={[path]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <MemoryRouter initialEntries={[path]}>
       <App />
     </MemoryRouter>,
   );

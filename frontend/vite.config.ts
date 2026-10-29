@@ -1,6 +1,5 @@
-/// <reference types="vitest" />
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 
 // Node globals without pulling in @types/node for one variable.
 declare const process: { env: Record<string, string | undefined> };

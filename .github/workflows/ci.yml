@@ -44,6 +44,12 @@ jobs:
           uv run llm-eval run --config evals/demo_config.yaml
           --output reports/demo-run.json --markdown reports/demo-run.md
 
+      - name: Run RAG demo evaluation and enforce gate
+        run: >-
+          uv run llm-eval run --config evals/demo_rag_config.yaml
+          --gates evals/gates.rag.yaml
+          --output reports/demo-rag-run.json --markdown reports/demo-rag-run.md
+
       - name: Regression gate against the committed baseline
         run: >-
           uv run llm-eval gate --report reports/demo-run.json
@@ -94,6 +100,38 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+  security:
+    name: Secret scan and dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # scan the whole history, not just the last commit
+
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_VERSION: 8.21.2
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Audit Python dependencies (pip-audit)
+        run: |
+          uv sync --locked --python 3.12
+          uv run --with pip-audit pip-audit --skip-editable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Audit npm dependencies
+        working-directory: frontend
+        run: npm audit --audit-level=moderate
 
   postgres:
     name: Migrations and API tests on PostgreSQL

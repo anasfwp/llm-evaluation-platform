@@ -1,0 +1,88 @@
+{
+  "schema_version": "1.0",
+  "name": "demo-rag",
+  "description": "Small retrieval-augmented QA set over a fictional product handbook, with recorded retriever rankings and relevance labels. Written for this repository; free to redistribute.",
+  "cases": [
+    {
+      "case_key": "returns-window",
+      "input": {"question": "How many days do customers have to return an unused item?"},
+      "expected_output": "30 days",
+      "retrieved_contexts": [
+        {"document_id": "policy-returns", "text": "Unused items can be returned within 30 days of delivery for a full refund.", "score": 0.91},
+        {"document_id": "policy-shipping", "text": "Standard shipping takes 3 to 5 business days.", "score": 0.42},
+        {"document_id": "faq-warranty", "text": "All devices carry a one-year limited warranty.", "score": 0.31}
+      ],
+      "relevant_document_ids": ["policy-returns"],
+      "tags": ["policy"]
+    },
+    {
+      "case_key": "shipping-time",
+      "input": {"question": "How long does standard shipping take?"},
+      "expected_output": "3 to 5 business days",
+      "retrieved_contexts": [
+        {"document_id": "policy-shipping", "text": "Standard shipping takes 3 to 5 business days.", "score": 0.88},
+        {"document_id": "policy-express", "text": "Express shipping arrives the next business day when ordered before noon.", "score": 0.80},
+        {"document_id": "policy-returns", "text": "Unused items can be returned within 30 days of delivery for a full refund.", "score": 0.22}
+      ],
+      "relevant_document_ids": ["policy-shipping"],
+      "tags": ["policy"]
+    },
+    {
+      "case_key": "warranty-length",
+      "input": {"question": "How long is the device warranty?"},
+      "expected_output": "one year",
+      "retrieved_contexts": [
+        {"document_id": "faq-accessories", "text": "Accessories such as cables and cases are not covered by the device warranty.", "score": 0.77},
+        {"document_id": "faq-warranty", "text": "All devices carry a one-year limited warranty.", "score": 0.74},
+        {"document_id": "policy-returns", "text": "Unused items can be returned within 30 days of delivery for a full refund.", "score": 0.20}
+      ],
+      "relevant_document_ids": ["faq-warranty", "faq-accessories"],
+      "tags": ["warranty"]
+    },
+    {
+      "case_key": "battery-replacement",
+      "input": {"question": "Is battery replacement covered by the warranty?"},
+      "expected_output": "Yes, within the first year",
+      "retrieved_contexts": [
+        {"document_id": "faq-warranty", "text": "All devices carry a one-year limited warranty.", "score": 0.69},
+        {"document_id": "policy-shipping", "text": "Standard shipping takes 3 to 5 business days.", "score": 0.18}
+      ],
+      "relevant_document_ids": ["faq-battery"],
+      "tags": ["warranty"],
+      "metadata": {"note": "The retriever missed the relevant document: precision, recall and reciprocal rank are 0."}
+    },
+    {
+      "case_key": "support-hours",
+      "input": {"question": "When is phone support available?"},
+      "expected_output": "Monday to Friday, 9:00 to 17:00",
+      "retrieved_contexts": [
+        {"document_id": "faq-contact", "text": "Email support is answered within one business day.", "score": 0.71},
+        {"document_id": "faq-support-hours", "text": "Phone support is available Monday to Friday, 9:00 to 17:00.", "score": 0.70},
+        {"document_id": "faq-chat", "text": "Live chat is available every day from 8:00 to 20:00.", "score": 0.65}
+      ],
+      "relevant_document_ids": ["faq-support-hours"],
+      "tags": ["support"]
+    },
+    {
+      "case_key": "international-shipping",
+      "input": {"question": "Do you ship internationally?"},
+      "expected_output": "Yes, to 40 countries",
+      "retrieved_contexts": [
+        {"document_id": "policy-international", "text": "We ship to 40 countries; duties are paid by the recipient.", "score": 0.86},
+        {"document_id": "policy-shipping", "text": "Standard shipping takes 3 to 5 business days.", "score": 0.55}
+      ],
+      "relevant_document_ids": ["policy-international"],
+      "tags": ["policy"]
+    },
+    {
+      "case_key": "unlabelled-summary",
+      "input": {"question": "Summarise the returns policy in one sentence."},
+      "expected_output": null,
+      "retrieved_contexts": [
+        {"document_id": "policy-returns", "text": "Unused items can be returned within 30 days of delivery for a full refund.", "score": 0.90}
+      ],
+      "tags": ["open-ended"],
+      "metadata": {"note": "No relevance labels or reference answer: retrieval metrics and token_f1 are not applicable; groundedness still applies."}
+    }
+  ]
+}

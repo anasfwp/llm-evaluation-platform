@@ -1,0 +1,14 @@
+# gitleaks configuration: the default rules, plus an allowlist for the fake
+# credentials that the redaction tests use on purpose. Keep this list to
+# exact, obviously fake strings; never allowlist whole files or paths.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Deliberately fake values in tests and CI-only service passwords"
+regexes = [
+  '''sk-test-1234567890abcdef''',
+  '''sk-proj-ABCDEFGHIJKLMNOP1234''',
+  '''supersecretvalue''',
+  '''ci_only_password''',
+]

@@ -1,0 +1,23 @@
+# Gate for the RAG demo (evals/demo_rag_config.yaml).
+schema_version: "1.0"
+name: demo-rag-gate
+missing_metric_policy: fail
+
+rules:
+  # The recorded retriever must find most labelled documents in its top 3.
+  - metric: retrieval_recall_at_k
+    aggregation: mean
+    operator: gte
+    threshold: 0.8
+  # The production candidate must stay grounded in the retrieved context.
+  # (Judge scores are estimates; keep a human review for high-impact changes.)
+  - metric: llm_judge_groundedness
+    aggregation: mean
+    model: fake-grounded
+    operator: gte
+    threshold: 4
+  - metric: token_f1
+    aggregation: mean
+    model: fake-grounded
+    operator: gte
+    threshold: 0.9
