@@ -278,9 +278,9 @@ See the [threat model](docs/threat-model.md). In short:
 
 ## License
 
-Choose and add a license before publishing. Do not imply that the
-repository is open-source under a particular license until the `LICENSE`
-file exists. The demo datasets were written for this repository.
+[MIT](LICENSE) © 2026 hasseb01 and anasfwp. The demo datasets were
+written for this repository and are covered by the same license.
+Third-party dependencies keep their own licenses.
 
 ## Disclaimer
 
