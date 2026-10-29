@@ -11,8 +11,8 @@ inspect failures, and enforce quality gates in CI.
 > providers, token usage, estimated cost) and Phase 4 (LLM-as-judge with versioned
 > rubrics, retrieval Precision@k / Recall@k / reciprocal rank, token F1, semantic
 > similarity) and Phase 5 (run comparisons, saved baselines, baseline-relative and
-> per-tag gates, regression reports, CI gating) are implemented and tested.
-> Everything else below is
+> per-tag gates, regression reports, CI gating) and Phase 6 (React dashboard)
+> are implemented and tested. Everything else below is
 > planned. The API has **no authentication yet**: run it on localhost only.
 > Do not treat illustrative sample scores or costs as real benchmark
 > results.
@@ -112,8 +112,8 @@ Dashboard / CLI / GitHub Actions
         Background Worker
 ```
 
-The frontend is planned with React, TypeScript, and Vite. Docker Compose
-will provide local infrastructure. The evaluation engine and core
+The dashboard (`frontend/`) is React, TypeScript, and Vite, talking only
+to the REST API. Docker Compose provides local infrastructure. The evaluation engine and core
 metrics should remain testable without external model APIs.
 
 See: - [`REQUIREMENTS.md`](REQUIREMENTS.md) --- product, functional,
@@ -241,7 +241,54 @@ uv run celery --workdir backend -A app.workers.celery_app worker --loglevel INFO
 
 Interactive API documentation is at `http://localhost:8000/docs`. The
 uvicorn command binds to `127.0.0.1` by default; keep it that way until
-authentication exists. The React frontend is planned for Phase 6.
+authentication exists.
+
+Then start the dashboard (Node.js 20+):
+
+``` bash
+cd frontend
+npm ci
+npm run dev        # http://127.0.0.1:5173, proxies /api to 127.0.0.1:8000
+```
+
+To fill an empty database with demo data (one project, the demo dataset,
+two fake models, three runs, a baseline, a gate, and a comparison), run
+`uv run python scripts/seed_demo.py` while the API and worker are up.
+For a quick look without PostgreSQL or Redis, the API can run on SQLite
+and execute runs in-process (development only):
+
+``` bash
+export DATABASE_URL=sqlite:///./local.db RUN_DISPATCHER=inline
+uv run alembic upgrade head
+uv run uvicorn app.main:create_app --factory --app-dir backend --port 8000
+```
+
+## Dashboard
+
+| Project runs and quality trend | Run summary | Regression comparison |
+|---|---|---|
+| ![Project page with a per-model quality trend and run list](docs/screenshots/project-runs.png) | ![Run page with per-metric charts and report downloads](docs/screenshots/run-summary.png) | ![Comparison page showing regressed metrics and newly failing cases](docs/screenshots/comparison.png) |
+
+-   **Projects**: create and browse; each project has runs, datasets,
+    models, comparisons, and baselines & gates tabs.
+-   **Runs**: start a run (dataset, models, metrics, concurrency), watch
+    progress live, cancel, see per-metric charts per model, filter case
+    results by model, status, tag, or score, and download the report as
+    Markdown, JSON, or CSV.
+-   **Datasets**: import JSON/JSONL, browse versions and cases with tag
+    and key filters, export.
+-   **Comparisons**: pick a baseline run or saved baseline and a
+    candidate; see metric deltas with direction-aware verdicts, newly
+    failing and recovered cases, and per-case score changes; download the
+    regression report.
+-   **Baselines & gates**: save a run as a baseline and evaluate saved
+    gates (absolute and baseline-relative) against any completed run.
+-   Every chart has a table view and keyboard-accessible tooltips; state is
+    never shown by colour alone; light and dark themes; works down to
+    phone width.
+
+API keys are never entered in or shown by the dashboard: model
+configurations only name the environment variable that holds a key.
 
 ## Dataset example
 
@@ -359,7 +406,7 @@ limits.
 -   [x] Phase 4: judge and retrieval metrics
 -   [x] Phase 5: run comparisons, baselines, quality gates, CI
     integration
--   [ ] Phase 6: React dashboard and report exports
+-   [x] Phase 6: React dashboard and report exports
 -   [ ] Phase 7: security review, end-to-end tests, screenshots,
     documentation, release
 
