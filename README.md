@@ -7,7 +7,7 @@ questions to one or more AI models, scores every answer, and shows you
 which model did better, which answers got worse, and whether the results
 are good enough to release.
 
-> **v0.1.0, portfolio project.** There is no login yet, so run it on your
+> **v0.1.1, portfolio project.** There is no login yet, so run it on your
 > own computer only. The demo uses fake models, so its scores are
 > examples, not benchmarks.
 
@@ -76,6 +76,8 @@ npm run dev                       # open http://127.0.0.1:5173
 
 To fill it with demo data, run `uv run python scripts/seed_demo.py` from
 the project folder.
+
+![Starting a run, filtering results, and comparing against an earlier run](docs/screenshots/demo.gif)
 
 | Project page | Run results |
 |---|---|
@@ -161,6 +163,9 @@ These aren't built yet:
 | [`docs/api.md`](docs/api.md) | REST API reference |
 | [`docs/architecture.md`](docs/architecture.md) | How the system is built |
 | [`docs/threat-model.md`](docs/threat-model.md) | Security risks and protections |
+| [`docs/operations.md`](docs/operations.md) | Upgrades, backups, logs, and stuck runs |
+| [`docs/decisions/`](docs/decisions/) | Why it's built this way |
+| [`CHANGELOG.md`](CHANGELOG.md) | What changed in each version |
 
 ## License
 

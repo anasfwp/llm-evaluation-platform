@@ -176,7 +176,7 @@ jobs:
         run: uv run pytest backend/tests/integration
 
   docker:
-    name: Container image builds
+    name: Full stack on Docker Compose
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -185,5 +185,28 @@ jobs:
       - name: Validate compose file
         run: docker compose config --quiet
 
-      - name: Build backend image
-        run: docker build -f backend/Dockerfile -t llm-eval-backend:ci .
+      - name: Start the stack
+        run: docker compose up -d --build --wait
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install locked dependencies
+        run: uv sync --locked --all-groups --python 3.12
+
+      - name: End-to-end workflow through the worker
+        env:
+          E2E_API_URL: http://127.0.0.1:8000
+        run: uv run pytest backend/tests/e2e/test_compose_stack.py
+
+      - name: Worker logs carry run and case IDs
+        run: docker compose logs worker --no-log-prefix | grep '"case_key"' | grep -q '"run_id"'
+
+      - name: Show logs after a failure
+        if: failure()
+        run: docker compose logs --no-color
+
+      - name: Stop the stack
+        if: always()
+        run: docker compose down -v

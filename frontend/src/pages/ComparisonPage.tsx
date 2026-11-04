@@ -123,7 +123,7 @@ function ModelSection({ model: m }: { model: ModelComparison }) {
       {charted.length > 0 && (
         <div className="chart-grid">
           {charted.map((d) => (
-            <div className="card" key={d.metric}>
+            <div className="card" key={`${d.metric}:${d.aggregation}`}>
               <BarChart
                 title={`${d.metric} — ${d.aggregation}`}
                 rows={[{ label, values: [d.baseline, d.candidate] }]}

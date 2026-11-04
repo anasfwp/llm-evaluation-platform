@@ -155,8 +155,8 @@ queued ──> running ──> completed
   `error_rate`. A run is `failed` only when the run itself cannot proceed.
 - Cancellation stops before the next case. Cases already in flight finish.
 - If the worker process dies mid-run, the run stays `running`. This phase does
-  not detect stuck runs yet. Mark them by hand or rerun them; automatic
-  recovery is planned.
+  not detect stuck runs yet. Mark them by hand or rerun them (see
+  [operations](operations.md)); automatic recovery is planned.
 
 ### Report export
 
