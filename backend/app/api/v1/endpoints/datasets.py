@@ -83,6 +83,12 @@ def update_dataset(dataset_id: uuid.UUID, data: DatasetUpdate, session: SessionD
     return DatasetRead.from_model(dataset, dataset_service.current_case_count(session, dataset))
 
 
+@router.delete("/datasets/{dataset_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_dataset(dataset_id: uuid.UUID, session: SessionDep) -> Response:
+    dataset_service.delete_dataset(session, dataset_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @router.post("/datasets/{dataset_id}/versions", status_code=status.HTTP_201_CREATED)
 def create_version(
     dataset_id: uuid.UUID,

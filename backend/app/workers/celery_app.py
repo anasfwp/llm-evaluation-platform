@@ -8,7 +8,10 @@ its partial results; see docs/api.md for stuck-run handling.
 
 from __future__ import annotations
 
+from typing import Any
+
 from celery import Celery
+from celery.signals import setup_logging
 
 from app.core.config import get_settings, load_local_env
 from app.core.logging import configure_logging
@@ -16,6 +19,14 @@ from app.core.logging import configure_logging
 load_local_env()
 _settings = get_settings()
 configure_logging(_settings.log_level)
+
+
+@setup_logging.connect  # type: ignore[untyped-decorator]
+def _keep_json_logging(**_kwargs: Any) -> None:
+    # Without a receiver for this signal, the worker replaces the root logger's handlers
+    # at startup, dropping JSON output and the run and case IDs.
+    configure_logging(_settings.log_level)
+
 
 celery_app = Celery("llm_eval", broker=_settings.redis_url, include=["app.workers.tasks"])
 celery_app.conf.update(

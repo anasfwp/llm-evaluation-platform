@@ -132,6 +132,25 @@ React, and TypeScript.
 -   **Your data is stored.** Questions and answers are saved with the
     results, so don't use confidential data.
 
+## Roadmap
+
+These aren't built yet:
+
+-   **Login and per-project access**, needed before running this anywhere
+    but your own computer.
+-   **Data controls**: a retention window and an option not to store raw
+    questions and answers.
+-   **Spending and rate limits**: a per-run spend limit and API rate limits.
+-   **Testing your own app**: send questions to any HTTP endpoint, with
+    protection against calls to internal addresses.
+-   **Stuck run recovery**: detect runs left behind when a worker dies.
+-   **More evaluation options**: scheduled runs, repeat runs to measure
+    variance, weighted overall scores, and reusable run settings.
+-   **Operations**: track queue depth, worker failures, and provider error
+    rates, and load test at 1,000 cases per run.
+-   **Dashboard**: create model configurations and write datasets without
+    uploading a file.
+
 ## Learn more
 
 | Document | What's inside |

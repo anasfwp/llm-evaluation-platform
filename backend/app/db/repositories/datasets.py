@@ -6,7 +6,7 @@ import uuid
 from sqlalchemy import String, cast, func, select
 from sqlalchemy.orm import Session
 
-from app.db.models import Dataset, DatasetVersion, EvaluationCase
+from app.db.models import Dataset, DatasetVersion, EvaluationCase, EvaluationRun
 from app.domain import datasets as domain
 
 
@@ -27,6 +27,18 @@ def list_for_project(
     total = session.scalar(select(func.count()).select_from(query.subquery())) or 0
     items = session.scalars(query.order_by(Dataset.name).limit(limit).offset(offset)).all()
     return list(items), total
+
+
+def count_runs(session: Session, dataset_id: uuid.UUID) -> int:
+    return (
+        session.scalar(
+            select(func.count())
+            .select_from(EvaluationRun)
+            .join(DatasetVersion, EvaluationRun.dataset_version_id == DatasetVersion.id)
+            .where(DatasetVersion.dataset_id == dataset_id)
+        )
+        or 0
+    )
 
 
 def add_version(session: Session, dataset: Dataset, content: domain.Dataset) -> DatasetVersion:

@@ -17,6 +17,7 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 
 from app import __version__
+from app.core.logging import case_key_var
 from app.domain.datasets import Dataset, EvaluationCase
 from app.domain.metrics import MetricResult, MetricStatus
 from app.domain.models import (
@@ -115,6 +116,8 @@ async def _evaluate_case(
     hooks: _Hooks,
 ) -> CaseResult | None:
     """Return the case result, or ``None`` if the run was cancelled before it started."""
+    # gather runs each case in its own task, and each task has its own context copy.
+    case_key_var.set(case.case_key)
     async with limit:
         if hooks.is_cancelled is not None and hooks.is_cancelled():
             return None
@@ -151,6 +154,16 @@ async def _evaluate_case(
         started_at=started_at,
         finished_at=finished_at,
         metrics=metric_results,
+    )
+    logger.info(
+        "case finished",
+        extra={
+            "model_name": model.name,
+            "status": result.status,
+            "latency_ms": result.latency_ms,
+            "attempts": attempts,
+            "error_code": result.error_code,
+        },
     )
     if hooks.on_result is not None:
         hooks.on_result(result)

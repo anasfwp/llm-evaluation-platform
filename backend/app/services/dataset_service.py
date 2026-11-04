@@ -7,6 +7,7 @@ from pathlib import PurePath
 from typing import Literal
 
 from pydantic import ValidationError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.errors import (
@@ -122,6 +123,23 @@ def update_dataset(session: Session, dataset_id: uuid.UUID, data: DatasetUpdate)
         dataset.description = data.description
     session.commit()
     return dataset
+
+
+def delete_dataset(session: Session, dataset_id: uuid.UUID) -> None:
+    """Delete a dataset with its versions and cases, unless a run depends on one of them.
+
+    Runs keep a reference to the exact version they used, so those versions must survive.
+    """
+    dataset = get_dataset(session, dataset_id)
+    in_use = f"dataset {dataset_id} is used by evaluation runs and cannot be deleted"
+    if repo.count_runs(session, dataset_id) > 0:
+        raise ConflictError(in_use)
+    session.delete(dataset)
+    try:
+        session.commit()
+    except IntegrityError:  # a run started after the check above
+        session.rollback()
+        raise ConflictError(in_use) from None
 
 
 def add_version(

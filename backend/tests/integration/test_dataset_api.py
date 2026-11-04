@@ -5,7 +5,7 @@ import uuid
 
 from fastapi.testclient import TestClient
 
-from tests.integration.conftest import JsonDict, sample_cases
+from tests.integration.conftest import JsonDict, ModelFactory, sample_cases
 
 
 def test_create_and_read_dataset(client: TestClient, dataset: JsonDict) -> None:
@@ -127,3 +127,42 @@ def test_import_rejects_invalid_files(client: TestClient, project: JsonDict) -> 
         files={"file": ("cases.csv", b"a,b", "text/csv")},
     )
     assert unsupported.status_code == 422
+
+
+def test_delete_unused_dataset(client: TestClient, dataset: JsonDict) -> None:
+    client.post(f"/api/v1/datasets/{dataset['id']}/versions", json={"cases": sample_cases(2)})
+
+    assert client.delete(f"/api/v1/datasets/{dataset['id']}").status_code == 204
+
+    assert client.get(f"/api/v1/datasets/{dataset['id']}").status_code == 404
+    assert client.get(f"/api/v1/projects/{dataset['project_id']}/datasets").json()["total"] == 0
+    # The name is free again.
+    recreated = client.post(
+        f"/api/v1/projects/{dataset['project_id']}/datasets",
+        json={"name": dataset["name"], "cases": sample_cases(1)},
+    )
+    assert recreated.status_code == 201
+
+
+def test_delete_dataset_used_by_a_run_is_refused(
+    client: TestClient, dataset: JsonDict, make_model: ModelFactory
+) -> None:
+    started = client.post(
+        "/api/v1/runs",
+        json={
+            "project_id": dataset["project_id"],
+            "dataset_id": dataset["id"],
+            "model_config_ids": [make_model("reference")["id"]],
+            "metrics": [{"name": "exact_match"}],
+        },
+    )
+    assert started.status_code == 202, started.text
+
+    response = client.delete(f"/api/v1/datasets/{dataset['id']}")
+
+    assert response.status_code == 409
+    assert client.get(f"/api/v1/datasets/{dataset['id']}/versions/1").status_code == 200
+
+
+def test_delete_unknown_dataset(client: TestClient) -> None:
+    assert client.delete(f"/api/v1/datasets/{uuid.uuid4()}").status_code == 404

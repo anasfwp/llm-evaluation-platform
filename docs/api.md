@@ -72,6 +72,7 @@ runs pin an exact version together with its content hash.
 | POST   | `/datasets/import`                      | Multipart upload: `project_id`, `file` (`.json` or `.jsonl`), optional `name`. |
 | GET    | `/datasets/{id}`                        | Get one, including the current version and case count. |
 | PATCH  | `/datasets/{id}`                        | Rename or change the description (does not create a version). |
+| DELETE | `/datasets/{id}`                        | Delete it with all versions and cases (`204`). Refused with `409` once a run has used any version, because runs keep the exact version they used. |
 | POST   | `/datasets/{id}/versions`               | Add a version with a new `cases` list. |
 | GET    | `/datasets/{id}/versions`               | List versions with content hashes. |
 | GET    | `/datasets/{id}/versions/{n}`           | Version detail with paginated `cases`; filter with `tag` and `q` (case-key search). |

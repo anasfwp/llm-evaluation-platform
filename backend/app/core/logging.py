@@ -1,7 +1,8 @@
-"""Structured JSON logging with request/run correlation IDs.
+"""Structured JSON logging with request/run/case correlation IDs.
 
-Request and run IDs live in context variables so every log line emitted while
-handling a request or executing a run carries them automatically. Messages are
+Request and run IDs and case keys live in context variables so every log line
+emitted while handling a request, executing a run, or evaluating a case carries
+them automatically. Messages are
 passed through secret redaction; prompt and completion text is never logged.
 """
 
@@ -18,6 +19,7 @@ from app.utils.redaction import redact_secrets
 
 request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
 run_id_var: ContextVar[str | None] = ContextVar("run_id", default=None)
+case_key_var: ContextVar[str | None] = ContextVar("case_key", default=None)
 
 _STANDARD_ATTRS = set(vars(logging.makeLogRecord({}))) | {"message", "asctime"}
 
@@ -34,6 +36,8 @@ class JsonFormatter(logging.Formatter):
             payload["request_id"] = request_id
         if (run_id := run_id_var.get()) is not None:
             payload["run_id"] = run_id
+        if (case_key := case_key_var.get()) is not None:
+            payload["case_key"] = case_key
         for key, value in vars(record).items():
             if key not in _STANDARD_ATTRS and not key.startswith("_"):
                 payload[key] = value

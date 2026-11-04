@@ -11,7 +11,7 @@ from app.db.base import Base
 
 config = context.config
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 # An explicit URL (e.g. set by tests via config.set_main_option) wins over settings.
 if not config.get_main_option("sqlalchemy.url"):

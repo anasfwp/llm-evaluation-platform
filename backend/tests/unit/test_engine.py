@@ -1,9 +1,14 @@
 from __future__ import annotations
 
 import asyncio
+import json
+import logging
 from collections.abc import Callable
 from typing import Any
 
+import pytest
+
+from app.core.logging import JsonFormatter, case_key_var
 from app.domain.datasets import Dataset
 from app.domain.metrics import MetricCategory, MetricDirection, MetricResult, MetricStatus
 from app.domain.models import (
@@ -297,3 +302,22 @@ def test_adapter_is_closed_after_run(
     report = _run(make_config(), make_dataset(count=2), {"m1": Closable()})
     assert Closable.closed == 1
     assert report.status == RunStatus.COMPLETED
+
+
+def test_case_logs_carry_case_key_and_no_content(
+    make_dataset: Callable[..., Dataset],
+    make_config: Callable[..., EvalConfig],
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    caplog.set_level(logging.INFO, logger="app.evaluation.engine")
+    caplog.handler.setFormatter(JsonFormatter())
+    dataset = make_dataset(count=3)
+
+    _run(make_config(), dataset, {"m1": ScriptedAdapter()})
+
+    lines = [json.loads(line) for line in caplog.text.splitlines()]
+    finished = [line for line in lines if line["message"] == "case finished"]
+    assert {line["case_key"] for line in finished} == {c.case_key for c in dataset.cases}
+    assert all(line["model_name"] == "m1" and line["status"] == "success" for line in finished)
+    assert all(str(case.input) not in caplog.text for case in dataset.cases)
+    assert case_key_var.get() is None
