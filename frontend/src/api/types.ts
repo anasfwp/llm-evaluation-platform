@@ -120,6 +120,12 @@ export interface ModelSummary {
 
 export type RunStatus = "queued" | "running" | "completed" | "failed" | "cancelled";
 
+export interface RunSpend {
+  limit_usd: number;
+  estimated_usd: number;
+  stop_reason: string | null;
+}
+
 export interface Run {
   id: string;
   project_id: string;
@@ -128,6 +134,7 @@ export interface Run {
   progress: { total_cases: number; completed_cases: number; failed_cases: number };
   cancel_requested: boolean;
   models: ModelSummary[] | null;
+  spend: RunSpend | null;
   config_hash: string;
   config_snapshot: {
     metrics?: { name: string; version?: string | null; config?: Record<string, unknown> }[];
@@ -191,6 +198,7 @@ export interface RunCreate {
     max_concurrency: number;
     max_retries: number;
     retry_backoff_seconds: number;
+    max_spend_usd: number;
   }>;
 }
 

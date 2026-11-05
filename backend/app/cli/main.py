@@ -19,7 +19,7 @@ from app.core.config import load_local_env
 from app.core.errors import InputValidationError
 from app.domain.comparison import ComparisonSettings, ModelPair, RunComparison
 from app.domain.gates import GateResult
-from app.domain.runs import RunReport
+from app.domain.runs import RunReport, RunStatus
 from app.evaluation.comparison import ComparisonError, compare_runs
 from app.evaluation.engine import run_evaluation
 from app.evaluation.gates import evaluate_report_gate
@@ -148,9 +148,12 @@ def _cmd_run(args: argparse.Namespace) -> int:
     # Read the baseline first so a bad path fails before any (possibly paid) model calls.
     baseline = load_report(args.baseline) if args.baseline else None
     report = asyncio.run(run_evaluation(loaded.build_plan()))
-    if baseline is not None:
+    # A run stopped early has partial results: comparing or gating them would be misleading,
+    # and comparison refuses them, which must not lose the report of calls already paid for.
+    finished = report.status == RunStatus.COMPLETED
+    if finished and baseline is not None:
         report = report.model_copy(update={"comparison": compare_runs(baseline, report)})
-    if loaded.gate is not None:
+    if finished and loaded.gate is not None:
         gate_result = evaluate_report_gate(loaded.gate, report, baseline)
         report = report.model_copy(update={"gate": gate_result})
 
@@ -167,7 +170,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
         write_markdown_report(report, markdown_path)
 
     failed_models = [s.model_name for s in report.summaries if s.all_failed]
-    if failed_models:
+    if failed_models or not finished:
         exit_code = EXIT_RUN_FAILED
     elif report.gate is not None and not report.gate.passed:
         exit_code = EXIT_GATE_FAILED
@@ -182,6 +185,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
             "report_json": str(json_path) if json_path else None,
             "report_markdown": str(markdown_path) if markdown_path else None,
             "summaries": [s.model_dump(mode="json") for s in report.summaries],
+            "spend": report.spend.model_dump(mode="json") if report.spend else None,
             "gate": report.gate.model_dump(mode="json") if report.gate else None,
             "comparison": (_comparison_summary(report.comparison) if report.comparison else None),
         }
@@ -194,6 +198,8 @@ def _cmd_run(args: argparse.Namespace) -> int:
         if failed_models:
             names = ", ".join(failed_models)
             print(f"Run failure: every case errored for {names}", file=sys.stderr)
+        if report.spend is not None and report.spend.stop_reason is not None:
+            print(f"Run stopped early: {report.spend.stop_reason}", file=sys.stderr)
     return exit_code
 
 
@@ -278,6 +284,11 @@ def _fmt(value: Any) -> str:
 def _print_run_summary(report: RunReport) -> None:
     print(f"Run {report.run_id}  project={report.project}  status={report.status}")
     print(f"Dataset {report.dataset.name}: {report.dataset.case_count} cases")
+    if report.spend is not None:
+        print(
+            f"Estimated spend: ${report.spend.estimated_usd:.6f} "
+            f"of ${report.spend.limit_usd:.6f} limit"
+        )
     for summary in report.summaries:
         print(
             f"\n  {summary.model_name} ({summary.provider}/{summary.model_id}): "

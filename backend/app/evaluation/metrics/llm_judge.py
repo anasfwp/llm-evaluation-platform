@@ -31,7 +31,7 @@ from app.domain.models import (
     NormalizedModelResponse,
     ProviderErrorCategory,
 )
-from app.evaluation.metrics.base import AsyncMetric, MetricInput
+from app.evaluation.metrics.base import AsyncMetric, MetricInput, ModelUsage
 from app.evaluation.rubrics import RUBRICS, SCALE_MAX, SCALE_MIN, SYSTEM_PROMPT, Rubric
 from app.providers.base import BaseProvider, ProviderError
 from app.providers.prompting import render_prompt
@@ -155,6 +155,20 @@ class _LLMJudge(AsyncMetric):
             judge.parameters, judge.secret_reference
         )
         return {f"judge.{location}": name for location, name in references.items()}
+
+    def billed_models(self) -> list[tuple[str, str]]:
+        return [(self.judge.provider, self.judge.model_id)]
+
+    def model_usage(self, result: MetricResult) -> ModelUsage | None:
+        # The usage keys are only written when the judge returned a response.
+        if "judge_input_tokens" not in result.details:
+            return None
+        return ModelUsage(
+            provider=self.judge.provider,
+            model_id=self.judge.model_id,
+            input_tokens=result.details["judge_input_tokens"],
+            output_tokens=result.details["judge_output_tokens"],
+        )
 
     @abstractmethod
     def material(self, data: MetricInput) -> list[tuple[str, str]] | str:

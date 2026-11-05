@@ -4,7 +4,8 @@ timeouts, and bounded retries, then scores and aggregates the results.
 The engine has no knowledge of the CLI, HTTP, or storage; callers hand it a
 ``RunPlan`` and receive a ``RunReport``. Callers that persist results
 incrementally pass ``on_result``; callers that support cancellation pass
-``is_cancelled``, which is checked before each case starts.
+``is_cancelled``, which is checked before each case starts. A run with
+``max_spend_usd`` stops starting paid work once it reaches that limit.
 """
 
 from __future__ import annotations
@@ -29,6 +30,7 @@ from app.domain.models import (
 from app.domain.runs import CaseResult, CaseStatus, DatasetInfo, EvalConfig, RunReport, RunStatus
 from app.evaluation.aggregation import summarize_model
 from app.evaluation.metrics.base import Metric, MetricInput
+from app.evaluation.spend import SpendTracker, build_spend_tracker
 from app.providers.base import ModelAdapter, ProviderError
 from app.utils.redaction import safe_error_message
 from app.utils.time import utc_now
@@ -50,6 +52,7 @@ class RunPlan:
 class _Hooks:
     on_result: Callable[[CaseResult], None] | None
     is_cancelled: Callable[[], bool] | None
+    spend: SpendTracker | None
 
 
 async def run_evaluation(
@@ -58,10 +61,14 @@ async def run_evaluation(
     run_id: str | None = None,
     on_result: Callable[[CaseResult], None] | None = None,
     is_cancelled: Callable[[], bool] | None = None,
+    spend: SpendTracker | None = None,
 ) -> RunReport:
+    """Run the plan. Pass ``spend`` to read the running total; by default it comes from the plan."""
     started_at = utc_now()
     cases = plan.dataset.cases
-    hooks = _Hooks(on_result=on_result, is_cancelled=is_cancelled)
+    # Built here rather than by callers, so no caller can forget to enforce a limit.
+    tracker = spend or build_spend_tracker(plan.config, plan.metrics)
+    hooks = _Hooks(on_result=on_result, is_cancelled=is_cancelled, spend=tracker)
 
     per_model: list[list[CaseResult]] = []
     cancelled = False
@@ -85,10 +92,12 @@ async def run_evaluation(
         summarize_model(model, results, plan.metrics)
         for model, results in zip(plan.config.models, per_model, strict=True)
     ]
+    # Anything skipped leaves the results partial, so the run must not count as completed.
+    stopped = cancelled or (tracker is not None and tracker.skipped_work)
     return RunReport(
         run_id=run_id or str(uuid.uuid4()),
         project=plan.config.project,
-        status=RunStatus.CANCELLED if cancelled else RunStatus.COMPLETED,
+        status=RunStatus.CANCELLED if stopped else RunStatus.COMPLETED,
         software_version=__version__,
         started_at=started_at,
         finished_at=utc_now(),
@@ -104,7 +113,16 @@ async def run_evaluation(
         metrics=[metric.info() for metric in plan.metrics],
         summaries=summaries,
         results=[result for results in per_model for result in results],
+        spend=tracker.summary() if tracker is not None else None,
     )
+
+
+def _limit_reached(spend: SpendTracker | None) -> bool:
+    """Whether paid work about to start must be skipped; records the skip if so."""
+    if spend is None or not spend.exhausted:
+        return False
+    spend.skipped_work = True
+    return True
 
 
 async def _evaluate_case(
@@ -121,13 +139,24 @@ async def _evaluate_case(
     async with limit:
         if hooks.is_cancelled is not None and hooks.is_cancelled():
             return None
+        if _limit_reached(hooks.spend):
+            return None
         started_at = utc_now()
-        response, latency_ms, attempts, error = await _call_with_retries(plan, adapter, model, case)
+        response, latency_ms, attempts, error = await _call_with_retries(
+            plan, adapter, model, case, hooks.spend
+        )
         finished_at = utc_now()
+        # Charged before the slot is released, so the next case sees this call's cost.
+        if response is not None and hooks.spend is not None:
+            hooks.spend.charge(
+                model.provider, model.model_id, response.input_tokens, response.output_tokens
+            )
 
     if response is not None:
         metric_input = MetricInput(case=case, response=response, latency_ms=latency_ms)
-        metric_results = [await _score(metric, metric_input) for metric in plan.metrics]
+        metric_results = [
+            await _score_within_limit(metric, metric_input, hooks.spend) for metric in plan.metrics
+        ]
     else:
         # No output to score: metrics are not applicable, and the failure is counted
         # in the model's error_rate instead of being folded into quality scores.
@@ -175,6 +204,7 @@ async def _call_with_retries(
     adapter: ModelAdapter,
     model: ModelConfigSnapshot,
     case: EvaluationCase,
+    spend: SpendTracker | None,
 ) -> tuple[NormalizedModelResponse | None, float | None, int, ProviderError | None]:
     """Return ``(response, latency_ms, attempts, error)``. Only transient errors are retried."""
     settings = plan.config.run
@@ -199,7 +229,11 @@ async def _call_with_retries(
             error = ProviderError(ProviderErrorCategory.UNKNOWN, f"{type(exc).__name__}: {exc}")
         latency_ms = (time.perf_counter() - start) * 1000
 
-        if not error.category.is_transient or attempt > settings.max_retries:
+        if (
+            not error.category.is_transient
+            or attempt > settings.max_retries
+            or _limit_reached(spend)
+        ):
             return None, latency_ms, attempt, error
         backoff = settings.retry_backoff_seconds * 2 ** (attempt - 1)
         # Honour a server-requested wait (already capped by the adapter) when it is longer.
@@ -216,6 +250,17 @@ async def _close(resource: ModelAdapter | Metric) -> None:
         await close()
     except Exception:  # cleanup failures must never change a run's outcome
         logger.warning("could not close %s", type(resource).__name__, exc_info=True)
+
+
+async def _score_within_limit(
+    metric: Metric, data: MetricInput, spend: SpendTracker | None
+) -> MetricResult:
+    if metric.billed_models() and _limit_reached(spend):
+        return metric.error("spend_limit_reached", "skipped: the run's spend limit was reached")
+    result = await _score(metric, data)
+    if spend is not None and (usage := metric.model_usage(result)) is not None:
+        spend.charge(usage.provider, usage.model_id, usage.input_tokens, usage.output_tokens)
+    return result
 
 
 async def _score(metric: Metric, data: MetricInput) -> MetricResult:

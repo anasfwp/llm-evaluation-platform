@@ -6,7 +6,7 @@ from typing import Any, ClassVar
 from pydantic import BaseModel, ConfigDict
 
 from app.domain.metrics import MetricCategory, MetricDirection, MetricResult
-from app.evaluation.metrics.base import AsyncMetric, MetricInput
+from app.evaluation.metrics.base import AsyncMetric, MetricInput, ModelUsage
 from app.providers.base import ProviderError
 from app.providers.embeddings import (
     EmbeddingClient,
@@ -49,6 +49,23 @@ class SemanticSimilarity(AsyncMetric):
 
     def env_references(self) -> dict[str, str]:
         return {f"embedding.{k}": v for k, v in self.embedding.env_references().items()}
+
+    def billed_models(self) -> list[tuple[str, str]]:
+        # The fake embedding is local and free, and reports no usage.
+        if self.embedding.provider == "fake":
+            return []
+        return [(self.embedding.provider, self.embedding.model_id)]
+
+    def model_usage(self, result: MetricResult) -> ModelUsage | None:
+        # The key is only written when the embedding call returned a response.
+        if self.embedding.provider == "fake" or "embedding_input_tokens" not in result.details:
+            return None
+        return ModelUsage(
+            provider=self.embedding.provider,
+            model_id=self.embedding.model_id,
+            input_tokens=result.details["embedding_input_tokens"],
+            output_tokens=0,
+        )
 
     async def evaluate_async(self, data: MetricInput) -> MetricResult:
         expected = data.case.expected_output

@@ -35,6 +35,8 @@ class RunSettings(BaseModel):
     max_retries: int = Field(default=1, ge=0, le=5)
     retry_backoff_seconds: float = Field(default=0.5, ge=0, le=30)
     max_cases: int = Field(default=1000, ge=1, le=100_000)
+    # Stop starting paid work once estimated spend reaches this; see app.evaluation.spend.
+    max_spend_usd: float | None = Field(default=None, gt=0, le=1_000_000)
 
 
 class ReportSettings(BaseModel):
@@ -167,6 +169,17 @@ class RunStatus(StrEnum):
     CANCELLED = "cancelled"
 
 
+class SpendSummary(BaseModel):
+    """Estimated spend of a run that has a limit: model calls, judges, and embeddings."""
+
+    model_config = ConfigDict(frozen=True)
+
+    limit_usd: float
+    estimated_usd: float
+    # Why paid work was skipped; ``None`` if the run was not stopped by its limit.
+    stop_reason: str | None = None
+
+
 class RunReport(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -183,6 +196,7 @@ class RunReport(BaseModel):
     metrics: list[MetricInfo]
     summaries: list[ModelSummary]
     results: list[CaseResult]
+    spend: SpendSummary | None = None
     gate: GateResult | None = None
     # Present when the run was compared with a baseline (CLI ``run --baseline``).
     comparison: RunComparison | None = None

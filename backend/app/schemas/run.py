@@ -7,9 +7,9 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.db.models import CaseResult, EvaluationRun
-from app.db.repositories.runs import to_domain_result
+from app.db.repositories.runs import spend_summary, to_domain_result
 from app.domain.metrics import MetricResult
-from app.domain.runs import MetricSelection, ModelSummary, RunSettings, RunStatus
+from app.domain.runs import MetricSelection, ModelSummary, RunSettings, RunStatus, SpendSummary
 
 
 class RunCreate(BaseModel):
@@ -52,6 +52,8 @@ class RunRead(BaseModel):
     cancel_requested: bool
     # Present once the run reaches a terminal state.
     models: list[ModelSummary] | None
+    # Present when the run has a spend limit; updated as cases finish.
+    spend: SpendSummary | None
     config_hash: str
     config_snapshot: dict[str, Any]
     software_version: str
@@ -78,6 +80,7 @@ class RunRead(BaseModel):
                 if run.summary_json is not None
                 else None
             ),
+            spend=spend_summary(run),
             config_hash=run.config_hash,
             config_snapshot=run.config_snapshot_json,
             software_version=run.software_version,

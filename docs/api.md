@@ -134,11 +134,39 @@ POST /api/v1/runs
 given, must match the implemented version. At most `MAX_MODELS_PER_RUN`
 models are allowed per run.
 
+### Spend limit
+
+Set `run_config.max_spend_usd` (or `run.max_spend_usd` in a CLI config) to stop
+a run once its estimated spend reaches that amount. There is no limit by default.
+
+- It counts model calls, LLM judges, and paid embeddings, so it can be higher
+  than the `estimated_cost` metric, which counts model calls only.
+- Prices come from the `estimated_cost` metric's table if the run has one,
+  otherwise from the bundled table.
+- A run is rejected at the start if a billed model has no price. The bundled
+  table only has `anthropic` and `fake` prices, so for other providers add them
+  to the `estimated_cost` metric's `pricing` config.
+- If a provider stops reporting token usage, the run stops, because its spend
+  can no longer be tracked.
+- At the limit, no new cases, retries, judge calls, or embedding calls start.
+  Skipped metrics record the error `spend_limit_reached`.
+- A stopped run ends as `cancelled`, with the reason in `error_message` and
+  `spend.stop_reason`. Its results are kept, but it cannot be compared or used
+  as a baseline. The CLI writes the report, skips comparison and gates, and
+  exits 3.
+- Read the total from `spend` on the run: `limit_usd`, `estimated_usd`, and
+  `stop_reason`.
+
+**This is a guard rail, not a billing control.** Calls already in flight finish
+and can overshoot the limit, more so at high concurrency. Failed calls count as
+free, though a provider may bill a request that timed out. Keep spend limits at
+each provider too.
+
 ### Run lifecycle
 
 ```text
 queued ──> running ──> completed
-   │          ├──────> cancelled   (cancellation observed before a case started)
+   │          ├──────> cancelled   (cancellation observed, or spend limit reached)
    │          └──────> failed      (unrecoverable error; error_message is redacted)
    └─────> cancelled               (cancelled before a worker picked it up)
 ```

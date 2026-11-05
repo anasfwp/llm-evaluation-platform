@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+-   Optional per-run spend limit, `max_spend_usd`, covering model calls, LLM
+    judges, and paid embeddings. See [the API guide](docs/api.md#spend-limit).
+    New runs get a different config hash, because the setting is part of it.
+
 ## 0.1.1 (2026-11-04)
 
 ### Added

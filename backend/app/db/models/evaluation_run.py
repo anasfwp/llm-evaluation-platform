@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Boolean, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, JSONType, UUIDPrimaryKey
@@ -31,6 +31,8 @@ class EvaluationRun(UUIDPrimaryKey, Base):
     completed_cases: Mapped[int] = mapped_column(Integer, default=0)
     failed_cases: Mapped[int] = mapped_column(Integer, default=0)
     cancel_requested: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Running total, only tracked for runs with a spend limit.
+    estimated_spend_usd: Mapped[float | None] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(default=utc_now, index=True)
     started_at: Mapped[datetime | None] = mapped_column()
     finished_at: Mapped[datetime | None] = mapped_column()

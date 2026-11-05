@@ -128,6 +128,17 @@ def get_result(session: Session, run_id: uuid.UUID, result_id: uuid.UUID) -> Cas
     )
 
 
+def spend_summary(run: EvaluationRun) -> domain.SpendSummary | None:
+    limit = (run.config_snapshot_json.get("run") or {}).get("max_spend_usd")
+    if limit is None:
+        return None
+    return domain.SpendSummary(
+        limit_usd=limit,
+        estimated_usd=run.estimated_spend_usd or 0.0,
+        stop_reason=run.error_message if run.status == domain.RunStatus.CANCELLED else None,
+    )
+
+
 def to_domain_result(row: CaseResult) -> domain.CaseResult:
     return domain.CaseResult(
         case_key=row.case_key,

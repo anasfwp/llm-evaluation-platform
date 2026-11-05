@@ -39,6 +39,16 @@ class MetricInput:
     latency_ms: float | None
 
 
+@dataclass(frozen=True)
+class ModelUsage:
+    """Tokens of one paid call a metric made. ``None`` means the provider did not report them."""
+
+    provider: str
+    model_id: str
+    input_tokens: int | None
+    output_tokens: int | None
+
+
 class Metric(ABC):
     name: ClassVar[str]
     version: ClassVar[str]
@@ -70,6 +80,14 @@ class Metric(ABC):
         Checked against the operator allowlist by the API, exactly like model configurations.
         """
         return {}
+
+    def billed_models(self) -> list[tuple[str, str]]:
+        """``(provider, model_id)`` of each model this metric pays to call."""
+        return []
+
+    def model_usage(self, result: MetricResult) -> ModelUsage | None:
+        """Usage of the paid call behind ``result``, or ``None`` if no call returned a response."""
+        return None
 
     @classmethod
     def describe(cls) -> MetricInfo:

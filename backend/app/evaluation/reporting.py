@@ -104,6 +104,14 @@ def render_markdown(report: RunReport) -> str:
         "",
     ]
 
+    if report.spend is not None:
+        # Goes with the run details, above the blank line and the summary heading.
+        spend = report.spend
+        line = f"- Estimated spend: ${spend.estimated_usd:.6f} of ${spend.limit_usd:.6f} limit"
+        if spend.stop_reason is not None:
+            line += f" (stopped early: {spend.stop_reason})"
+        lines.insert(-3, line)
+
     metric_names = [m.name for m in report.metrics]
     header = ["Model", "Cases", "Errors", "Error rate", "Tokens in / out"]
     for name in metric_names:

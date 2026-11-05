@@ -5,6 +5,9 @@ State transitions (all committed in their own transaction):
     queued -> running -> completed | cancelled | failed
     queued -> cancelled            (cancelled before a worker picked it up)
 
+A run that reaches its spend limit ends as ``cancelled`` with the reason in
+``error_message``: its results are partial, so it must not count as completed.
+
 Case results are committed one at a time as they finish, so a crash or
 cancellation never loses results that were already produced.
 """
@@ -36,6 +39,7 @@ from app.domain.runs import CaseResult, CaseStatus, EvalConfig, RunStatus
 from app.evaluation.engine import RunPlan, run_evaluation
 from app.evaluation.metrics.base import Metric
 from app.evaluation.registry import build_metric, freeze_selections
+from app.evaluation.spend import build_spend_tracker, unpriced_message, unpriced_models
 from app.providers.registry import get_provider
 from app.schemas.run import RunCreate
 from app.services.dataset_service import get_dataset
@@ -133,10 +137,18 @@ def start_run(
         )
 
     metrics = _build_metrics(data, allowed_env)
+    snapshots = [to_snapshot(m) for m in models]
+    if data.run_config.max_spend_usd is not None:
+        unpriced = unpriced_models(snapshots, metrics)
+        if unpriced:
+            raise InvalidRequestError(
+                unpriced_message(unpriced),
+                [Issue("run_config.max_spend_usd", "a billed model has no price")],
+            )
     config = EvalConfig(
         project=project.name,
         dataset=f"{dataset.name}@v{version.version_number}",
-        models=[to_snapshot(m) for m in models],
+        models=snapshots,
         metrics=freeze_selections(data.metrics),
         run=data.run_config,
     )
@@ -233,21 +245,33 @@ def _execute(session: Session, run_id: uuid.UUID) -> None:
 
     try:
         plan, positions = _build_plan(session, run)
+        spend = build_spend_tracker(plan.config, plan.metrics)
 
         def on_result(result: CaseResult) -> None:
             repo.add_case_result(session, run.id, positions[result.case_key], result)
             run.completed_cases += 1
             if result.status == CaseStatus.ERROR:
                 run.failed_cases += 1
+            if spend is not None:
+                run.estimated_spend_usd = spend.spent_usd
             session.commit()
 
         def is_cancelled() -> bool:
             return repo.is_cancel_requested(session, run.id)
 
         report = asyncio.run(
-            run_evaluation(plan, run_id=str(run.id), on_result=on_result, is_cancelled=is_cancelled)
+            run_evaluation(
+                plan,
+                run_id=str(run.id),
+                on_result=on_result,
+                is_cancelled=is_cancelled,
+                spend=spend,
+            )
         )
         run.summary_json = [summary.model_dump(mode="json") for summary in report.summaries]
+        if report.spend is not None:
+            run.estimated_spend_usd = report.spend.estimated_usd
+            run.error_message = report.spend.stop_reason
         run.status = report.status
         run.finished_at = utc_now()
         session.commit()

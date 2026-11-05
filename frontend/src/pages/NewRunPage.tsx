@@ -24,6 +24,7 @@ export function NewRunPage() {
   const [metricNames, setMetricNames] = useState<string[]>(DEFAULT_METRICS);
   const [maxConcurrency, setMaxConcurrency] = useState(4);
   const [maxRetries, setMaxRetries] = useState(1);
+  const [maxSpend, setMaxSpend] = useState("");
   const [error, setError] = useState<unknown>();
   const [busy, setBusy] = useState(false);
 
@@ -41,7 +42,11 @@ export function NewRunPage() {
         dataset_id: datasetId,
         model_config_ids: modelIds,
         metrics: metricNames.filter((n) => available.has(n)).map((name) => ({ name })),
-        run_config: { max_concurrency: maxConcurrency, max_retries: maxRetries },
+        run_config: {
+          max_concurrency: maxConcurrency,
+          max_retries: maxRetries,
+          ...(maxSpend ? { max_spend_usd: Number(maxSpend) } : {}),
+        },
       });
       navigate(`/runs/${started.run_id}`);
     } catch (err) {
@@ -142,6 +147,17 @@ export function NewRunPage() {
                 max={5}
                 value={maxRetries}
                 onChange={(e) => setMaxRetries(Number(e.target.value))}
+              />
+            </label>
+            <label>
+              Spend limit (USD, optional)
+              <input
+                type="number"
+                min={0.000001}
+                step="any"
+                placeholder="No limit"
+                value={maxSpend}
+                onChange={(e) => setMaxSpend(e.target.value)}
               />
             </label>
           </div>

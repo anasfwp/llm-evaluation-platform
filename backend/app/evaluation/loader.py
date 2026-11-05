@@ -19,6 +19,7 @@ from app.domain.runs import EvalConfig, RunReport
 from app.evaluation.engine import RunPlan
 from app.evaluation.metrics.base import Metric
 from app.evaluation.registry import build_metric, freeze_selections
+from app.evaluation.spend import unpriced_message, unpriced_models
 from app.providers.registry import get_provider
 
 
@@ -127,6 +128,13 @@ def load_config(path: Path, *, gate_override: Path | None = None) -> LoadedConfi
 
     if issues:
         raise InputValidationError(source, issues)
+
+    if config.run.max_spend_usd is not None:
+        unpriced = unpriced_models(config.models, metrics)
+        if unpriced:
+            raise InputValidationError(
+                source, [Issue("run.max_spend_usd", unpriced_message(unpriced))]
+            )
 
     dataset_path = _resolve(path, config.dataset)
     dataset = load_dataset(dataset_path)

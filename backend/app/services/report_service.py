@@ -72,6 +72,7 @@ def build_report(session: Session, run: EvaluationRun) -> RunReport:
         metrics=[MetricInfo.model_validate(info) for info in run.metric_infos_json],
         summaries=[ModelSummary.model_validate(s) for s in run.summary_json or []],
         results=_ordered_results(session, run, config),
+        spend=repo.spend_summary(run),
     )
 
 

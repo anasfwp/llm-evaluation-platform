@@ -49,6 +49,77 @@ def finished_run(client: TestClient, dataset: JsonDict, two_models: list[JsonDic
     return run
 
 
+def test_spend_limit_stops_run_and_reports_it(
+    client: TestClient, dataset: JsonDict, make_model: ModelFactory
+) -> None:
+    accepted = _start(
+        client,
+        dataset,
+        [make_model("metered")],
+        run_config={**FAST_RUN, "max_concurrency": 1, "max_spend_usd": 0.000001},
+    )
+    assert accepted.status_code == 202, accepted.text
+    run_id = accepted.json()["run_id"]
+    run = client.get(f"/api/v1/runs/{run_id}").json()
+
+    assert run["status"] == "cancelled"
+    assert run["progress"]["completed_cases"] == 1
+    assert run["progress"]["total_cases"] == 5
+    assert run["spend"]["limit_usd"] == 0.000001
+    assert run["spend"]["estimated_usd"] >= 0.000001
+    assert "limit" in run["spend"]["stop_reason"]
+    assert run["error_message"] == run["spend"]["stop_reason"]
+    assert len(run["models"]) == 1
+
+    report = client.get(f"/api/v1/runs/{run_id}/report").json()
+    assert report["spend"] == run["spend"]
+    assert len(report["results"]) == 1
+
+
+def test_spend_within_limit_completes_and_is_reported(
+    client: TestClient, dataset: JsonDict, make_model: ModelFactory
+) -> None:
+    accepted = _start(
+        client, dataset, [make_model("metered")], run_config={**FAST_RUN, "max_spend_usd": 5.0}
+    )
+    run = client.get(f"/api/v1/runs/{accepted.json()['run_id']}").json()
+    assert run["status"] == "completed"
+    assert 0 < run["spend"]["estimated_usd"] < 5.0
+    assert run["spend"]["stop_reason"] is None
+    assert run["error_message"] is None
+
+
+def test_run_without_a_limit_has_no_spend(finished_run: JsonDict) -> None:
+    assert finished_run["spend"] is None
+
+
+def test_spend_limit_rejected_for_unpriced_model(
+    client: TestClient, dataset: JsonDict, make_model: ModelFactory
+) -> None:
+    pricing = {
+        "pricing_version": "custom",
+        "entries": [
+            {
+                "provider": "anthropic",
+                "model_id": "*",
+                "input_per_million": 1,
+                "output_per_million": 1,
+                "effective_from": "2026-01-01",
+                "source": "test",
+            }
+        ],
+    }
+    response = _start(
+        client,
+        dataset,
+        [make_model("unpriced")],
+        metrics=[{"name": "estimated_cost", "config": {"pricing": pricing}}],
+        run_config={**FAST_RUN, "max_spend_usd": 1.0},
+    )
+    assert response.status_code == 422, response.text
+    assert "no price for fake/unpriced-v1" in response.text
+
+
 def test_metric_catalog(client: TestClient) -> None:
     names = {m["name"] for m in client.get("/api/v1/metrics").json()}
     assert {"exact_match", "latency"} <= names

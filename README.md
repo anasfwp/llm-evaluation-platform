@@ -142,7 +142,7 @@ These aren't built yet:
     but your own computer.
 -   **Data controls**: a retention window and an option not to store raw
     questions and answers.
--   **Spending and rate limits**: a per-run spend limit and API rate limits.
+-   **Rate limits**: API rate limits and a server-wide spend limit.
 -   **Testing your own app**: send questions to any HTTP endpoint, with
     protection against calls to internal addresses.
 -   **Stuck run recovery**: detect runs left behind when a worker dies.

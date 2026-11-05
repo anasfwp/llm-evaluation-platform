@@ -93,7 +93,8 @@ function RunView({ run, metricInfo, onChange }: { run: Run; metricInfo: MetricIn
       <ErrorMessage error={error} />
       {run.error_message && (
         <div className="alert" role="alert">
-          <strong>Run failed:</strong> {run.error_message}
+          <strong>{run.status === "cancelled" ? "Run stopped:" : "Run failed:"}</strong>{" "}
+          {run.error_message}
         </div>
       )}
 
@@ -104,6 +105,13 @@ function RunView({ run, metricInfo, onChange }: { run: Run; metricInfo: MetricIn
           hint={active ? "Updating every 2 s" : undefined}
         />
         <Stat label="Failed cases" value={run.progress.failed_cases} />
+        {run.spend && (
+          <Stat
+            label="Estimated spend"
+            value={`$${run.spend.estimated_usd.toFixed(4)}`}
+            hint={`Limit $${run.spend.limit_usd.toFixed(4)}`}
+          />
+        )}
         <Stat label="Duration" value={formatDuration(run.started_at, run.finished_at)} />
         <Stat label="Software" value={<span className="mono">{run.software_version}</span>} />
       </div>

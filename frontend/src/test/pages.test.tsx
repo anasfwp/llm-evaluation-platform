@@ -152,6 +152,7 @@ describe("pages", () => {
           },
         },
       ],
+      spend: null,
       config_hash: "h",
       config_snapshot: { models: [{ name: "model-a", provider: "fake", model_id: "fake-1" }] },
       software_version: "0.1.0",
@@ -176,5 +177,38 @@ describe("pages", () => {
     );
     expect(await screen.findByText("No case results match these filters.")).toBeInTheDocument();
     expect(screen.getByText("This project has no saved gates.")).toBeInTheDocument();
+  });
+
+  it("explains a run stopped by its spend limit", async () => {
+    const reason = "estimated spend $1.002000 reached the $1.000000 limit";
+    const run: Run = {
+      id: "stopped-run",
+      project_id: "p1",
+      status: "cancelled",
+      dataset: { id: "d1", name: "demo", version: 1, content_hash: "sha256:x" },
+      progress: { total_cases: 10, completed_cases: 4, failed_cases: 0 },
+      cancel_requested: false,
+      models: [],
+      spend: { limit_usd: 1, estimated_usd: 1.002, stop_reason: reason },
+      config_hash: "h",
+      config_snapshot: {},
+      software_version: "0.1.1",
+      error_message: reason,
+      created_at: "2026-11-05T10:00:00Z",
+      started_at: "2026-11-05T10:00:00Z",
+      finished_at: "2026-11-05T10:00:02Z",
+    };
+    mockApi({
+      [`GET /api/v1/runs/${run.id}`]: run,
+      "GET /api/v1/metrics": [],
+      [`GET /api/v1/runs/${run.id}/results`]: { items: [], total: 0, limit: 25, offset: 0 },
+      "GET /api/v1/projects/p1/gates": [],
+      "GET /api/v1/projects/p1/baselines": [],
+    });
+    renderAt(`/runs/${run.id}`);
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(`Run stopped: ${reason}`);
+    expect(screen.getByText("$1.0020")).toBeInTheDocument();
+    expect(screen.getByText("Limit $1.0000")).toBeInTheDocument();
   });
 });
